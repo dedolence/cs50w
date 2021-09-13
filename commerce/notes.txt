@@ -39,4 +39,12 @@ So once again:
     - Watchlist page
     - Categories page
     - Django admin page
-    
+
+    DB Structure:
+    Listings:   ID    title             description       starting_bid(FK)    current_bid(FK)    winning_bid(FK)   user_id(FK)   winner_id(FK)   category_id(FK)    timestamp
+    Bids:       ID    amount            listing_id(FK)    user_id(FK)    timestamp
+    Watchlist:  ID    listing_id(FK)    user_id(FK)
+    Comments:   ID    content           listing_id(FK)    user_id(FK)    timestamp
+    Categories: ID    content
+    Listings_   ID    listing_id(FK)    category_id(FK)
+        Categories:
