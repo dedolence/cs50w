@@ -1,0 +1,42 @@
+9/212/21
+    Just deleted everything after working on it all day. Too many errors. Learning new frameworks is so frustrating because at this point at a conceptual, abstract level, I know exactly what
+    I need to do, but the syntax doesn't allow me to just whip it up. Wish this was in any other language, but I have no love for the "friendly" syntax of Python.
+
+    The models had become congested and complicated - which ultimately they kinda need to be! At one point I added a timestamp field to a model. Persistant issues with default values where
+    the field wasn't explicitly created as a nullable field (which that alone I suppose I can understand, but the error message insisted that it couldn't handle this because of a conflict with
+    existing rows BUT THERE WERE NO ROWS IT WAS A BRAND NEW TABLE). so i set a default value as 0. then got a value error because 0 isn't the kinda default value a datetime field expected. 
+    fair enough. delete the field to try again but i kept getting the error. deleted the entire model class. still getting it. loaded the database into sqlite, DROPPED THE TABLE, 
+
+
+                            STILL
+                            GETTING
+                            THE
+                            ERROR
+    
+    somehow it was still coming up with a malformatted default datetime value even after the table had been manually dropped from the entire g'damn database.
+
+    since i was still in the beginning, i let my frustration take over and started over from scratch. clearly i need to build things up from simpler basics.
+
+
+9/13
+    it turns out the problem i was experiencing regarding using foreignkeys on a model before the foreignkey class has been defined is known but has an easy solution; simply encase the
+    class name in '' as a string; officially supported by Django docs, seemingly not a hack.
+    (the datetime error i've no idea)
+
+So once again:
+    - Create new listing:
+        - Title
+        - Description
+        - Starting bid
+        - Images
+        - Category
+    - Close listing
+        - Adds message for winner
+    - (Delete listing - not actually required)
+    - Add comments to listings
+    - Add/remove listings to watchlist
+    - Bid on item
+    - Watchlist page
+    - Categories page
+    - Django admin page
+    
