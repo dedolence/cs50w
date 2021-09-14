@@ -1,40 +1,38 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models.deletion import CASCADE, PROTECT
+from django.db.models.expressions import F
 
 
 class User(AbstractUser):
-    pass
+    Comment = models.ManyToManyField('Comment', blank=True)
 
 class Listing(models.Model):
     title = models.CharField(max_length=64, null=True, blank=False)
     description = models.TextField(max_length=500, null=True, blank=False)
-    # starting_bid = FK
-    # current_bid = FK
-    # winning_bid = FK
-    # user_id = FK
-    # winner_id = FK
-    # category_id = FK
-    timestamp = models.DateTimeField(auto_now_add=True)
+    starting_bid = models.IntegerField(null=True, blank=False)
+    user = models.ForeignKey(User, on_delete=PROTECT, related_name='listings', null=True)
+    winner = models.ForeignKey(User, on_delete=PROTECT, related_name='won_listings', null=True, blank=True)
+    category = models.ForeignKey('Category', on_delete=CASCADE, related_name='category_listings', null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True, null=True)
+    Comment = models.ManyToManyField('Comment', null=True, blank=True)
 
-class Bids(models.Model):
+    def __str__(self):
+        return f"Listing title: {self.title}. Owner: {self.user_id}. Starting bid: {self.starting_bid}. Created at {self.timestamp}."
+
+class Bid(models.Model):
     amount = models.IntegerField(null=True, blank=False)
-    # user_id = FK
-    # listing_id = FK
+    user = models.ForeignKey(User, on_delete=PROTECT, null=True)
+    listing = models.ForeignKey(Listing, on_delete=CASCADE, null=True)
 
-class Watchlist(models.Model):
-    # listing_id = FK
-    # user_id = FK
-    pass
+    def __str__(self):
+        return f"Amount: {self.amount} by {self.user_id}"
 
-class Comments(models.Model):
+class Comment(models.Model):
     content = models.TextField(max_length=200, null=True, blank=False)
-    # user_id = FK
-    # listing_id = FK
 
-class Categories(models.Model):
+class Category(models.Model):
     content = models.CharField(max_length=64, null=True, blank=False)
 
-class Listings_Categories(models.Model):
-    # listing_id = FK
-    # category_id = FK
-    pass
+    def __str__(self):
+        return f"Category: {self.content}"

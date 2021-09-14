@@ -43,8 +43,15 @@ So once again:
     DB Structure:
     Listings:   ID    title             description       starting_bid(FK)    current_bid(FK)    winning_bid(FK)   user_id(FK)   winner_id(FK)   category_id(FK)    timestamp
     Bids:       ID    amount            listing_id(FK)    user_id(FK)    timestamp
-    Watchlist:  ID    listing_id(FK)    user_id(FK)
+    (Watchlist:  ID    listing_id(FK)    user_id(FK))
     Comments:   ID    content           listing_id(FK)    user_id(FK)    timestamp
     Categories: ID    content
     Listings_   ID    listing_id(FK)    category_id(FK)
         Categories:
+
+    User class now has a watchlist field that is many-to-many with Listings.
+    
+    The specifications require a table for Bids, which I suppose makes sense, but a scaled-up version of this should probably archive bids somewhere else as that table would probably
+    get huge quickly. I guess that goes for many tables, so I wonder how archival works.
+
+    I guess all these html layouts just implicitly get access to user...

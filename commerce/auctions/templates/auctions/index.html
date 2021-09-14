@@ -3,5 +3,17 @@
 {% block body %}
     <h2>Active Listings</h2>
 
-    TODO
+    {% if user.is_authenticated %}
+
+        <ul>
+        {% for listing in listings %}
+            <li>{{ listing.title }}</li>
+        {% endfor %}
+        </ul>
+
+    {% else %}
+        <p><a href="{% url 'login' %}">Login</a> to see active listings.</p>
+        <p>Or <a href="{% url 'register' %}">register</a> for a free account.
+    {% endif %}
+
 {% endblock %}
