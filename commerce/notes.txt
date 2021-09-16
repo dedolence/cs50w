@@ -55,3 +55,11 @@ So once again:
     get huge quickly. I guess that goes for many tables, so I wonder how archival works.
 
     I guess all these html layouts just implicitly get access to user...
+
+    TODO: active listings should be accessed via category; URI looks like /category/listing_id
+        /listings           - show all listings
+        /listings/3         - show specific listing with id=3
+        /categories         - show all categories
+        /categories/books   - show all listings in the book category
+
+    

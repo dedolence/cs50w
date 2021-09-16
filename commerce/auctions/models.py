@@ -13,7 +13,7 @@ class Listing(models.Model):
     starting_bid = models.IntegerField(null=True, blank=False)
     user = models.ForeignKey(User, on_delete=PROTECT, related_name='listings', null=True)
     winner = models.ForeignKey(User, on_delete=PROTECT, related_name='won_listings', null=True, blank=True)
-    category = models.ForeignKey('Category', on_delete=CASCADE, related_name='category_listings', null=True, blank=True)
+    category = models.ForeignKey('Category', on_delete=CASCADE, related_name='category_listings', null=True, blank=False)
     timestamp = models.DateTimeField(auto_now_add=True, null=True)
     Comment = models.ManyToManyField('Comment', null=True, blank=True)
 
@@ -36,3 +36,10 @@ class Category(models.Model):
 
     def __str__(self):
         return f"Category: {self.content}"
+
+class Watchlist(models.Model):
+    user = models.ForeignKey(User, on_delete=CASCADE, related_name='watchlist')
+    listing = models.ForeignKey(Listing, on_delete=CASCADE, related_name='being_watched_by')
+
+    def __str__(self):
+        return f"Watching: {self.listing}"

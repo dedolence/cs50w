@@ -4,13 +4,14 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User, Listing, Bid, Comment, Category
-
+from .models import User, Listing, Bid, Comment, Category, Watchlist
 
 def index(request):
-    listings = Listing.objects.filter(user_id=request.user.id)
+    active_listings = Listing.objects.filter(user_id=request.user.id)
+    
     return render(request, "auctions/index.html", {
-        'listings': listings
+        'active_listings': active_listings,
+        'watchlist': getWatchlist(request.user.id)
     })
 
 
@@ -64,3 +65,41 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/register.html")
+
+
+def listings(request):
+    return render(request, "auctions/listings.html", {
+        "listings": Listing.objects.all()
+    })
+
+def listing_page(request, listing_id):
+    return render(request, "auctions/listing.html", {
+        'listing': Listing.objects.get(pk=listing_id)
+    })
+
+def categories(request):
+    return render(request, "auctions/categories.html", {
+        'categories': Category.objects.all()
+    })
+
+def category(request, category):
+    category_listings = Category.objects.filter(content__iexact=category)       # content is the column, __iexact is a case-insensitive LIKE query
+    return render(request, "auctions/category.html", {
+        "category_listings": category_listings
+    })
+
+
+def getWatchlist(user_id):
+    """
+        Gets a user's watchlist based on their ID.
+        For a plain descriptive string of the listing being watched, one could simply
+        get a queryset from the join table itself, which Django nicely cross-references
+        to fill in the details. But this doesn't return an object with accessible
+        properties like listing.title, or listing.description; hence, separate DB queries.
+    """
+    watch_joinset = Watchlist.objects.filter(user_id=user_id)
+    watchlist = []
+    for watch_item in watch_joinset:
+        watchlist.append(Listing.objects.get(pk=watch_item.listing_id))
+
+    return watchlist

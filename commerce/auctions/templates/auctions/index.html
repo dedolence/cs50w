@@ -6,8 +6,8 @@
     {% if user.is_authenticated %}
 
         <ul>
-        {% for listing in listings %}
-            <li>{{ listing.title }}</li>
+        {% for listing in active_listings %}
+            <li><a href="listings/{{ listing.id }}">{{ listing.title }}</a></li>
         {% endfor %}
         </ul>
 
@@ -15,5 +15,19 @@
         <p><a href="{% url 'login' %}">Login</a> to see active listings.</p>
         <p>Or <a href="{% url 'register' %}">register</a> for a free account.
     {% endif %}
+
+    <h2>Watchlist</h2>
+
+        {% if user.is_authenticated %}
+
+            <ul>
+                {% for watching in watchlist %}
+                    <li><a href="listings/{{ watching.id }}">{{ watching.title }}</a>: {{ watching.description }}</li>
+                {% empty %}
+                    <li>Not watching any listings.
+                {% endfor %}
+            </ul>
+
+        {% endif %}
 
 {% endblock %}
