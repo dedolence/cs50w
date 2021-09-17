@@ -10,5 +10,7 @@ urlpatterns = [
     path("listings/", views.listings, name="all_listings"),     # django automatically appends a / if it's left out, which is convenient. so /listings works as well as /listings/
     path("listings/<int:listing_id>", views.listing_page, name="listing"),
     path("categories/", views.categories, name="categories"),
-    path("categories/<category>", views.category, name="category")
+    path("categories/<category>", views.category, name="category"),
+    # for testing look
+    path("mockup/", views.viewMockup, name="mockup")
 ]

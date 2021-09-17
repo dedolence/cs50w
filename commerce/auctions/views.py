@@ -103,3 +103,6 @@ def getWatchlist(user_id):
         watchlist.append(Listing.objects.get(pk=watch_item.listing_id))
 
     return watchlist
+
+def viewMockup(request):
+    return render(request, "auctions/mockup.html")
