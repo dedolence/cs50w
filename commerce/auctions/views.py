@@ -6,6 +6,13 @@ from django.urls import reverse
 
 from .models import User, Listing, Bid, Comment, Category, Watchlist
 
+#for testing
+from . import wordlist
+import random
+import urllib.request
+from essential_generators import DocumentGenerator
+gen = DocumentGenerator()
+
 def index(request):
     active_listings = Listing.objects.filter(user_id=request.user.id)
     
@@ -104,5 +111,41 @@ def getWatchlist(user_id):
 
     return watchlist
 
+# testing methods below
 def viewMockup(request):
-    return render(request, "auctions/mockup.html")
+    titles = generateListing(10)
+    return render(request, "auctions/mockup.html", {
+        "titles": titles
+    })
+
+
+def generateListing(amount):
+    listings = []
+    for i in range(amount):
+        listing = {}
+
+        listing['title'] = generateTitle()
+        listing['image_path'] = generateImage(i)
+        listing['description'] = generateDescription()
+
+        listings.append(listing)
+    
+    return listings
+
+
+    
+def generateTitle():
+    adj = random.choice(wordlist.adjectives)
+    noun = random.choice(wordlist.nouns)
+    return f"{adj.capitalize()} {noun}"
+
+
+def generateImage(img_count):
+    img_url = 'https://picsum.photos/200'
+    img_path = 'D://documents/School/CS50/cs50w/commerce/auctions/static/auctions/images/mock'
+    filename = f"{img_count}.jpg"
+    urllib.request.urlretrieve(img_url, f"{img_path}/{img_count}.jpg")
+    return filename
+
+def generateDescription():
+    return gen.paragraph()

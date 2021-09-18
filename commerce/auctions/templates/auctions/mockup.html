@@ -37,11 +37,14 @@
                             <a href="#" class="nav-link">Create Listing</a>
                         </li>
                         <li class="nav-item p-2">
-                            <a href="#" class="nav-link">Logout</a>
+                            <a href="#" class="nav-link">
+                                <span class="d-none d-md-block d-lg-none"><br/></span> <!-- line break only on MD breakpoint -->
+                                Logout
+                            </a>
                         </li>
                         <li class="nav-item p-2">
                             <form class="form-inline" action="search/" method="GET">
-                                <input type="text" class="form-control mr-sm-2" placeholder="Search">
+                                <input type="text" class="form-control mb-2 mb-lg-0 mx-0 mx-lg-2" placeholder="Search">
                                 <button type="submit" class="btn btn-success">Search</button>
                             </form>
                         </li>
@@ -51,19 +54,24 @@
         </nav>
         <div class="container">
             <h5 class="my-3"><small>Home / </small>All Listings</h5>
-            <div class="container mt-5">
-                <div class="row">
-                    <!-- random image courtesy of https://picsum.photos/ -->
-                    <div class="col-sm-4"><img src="https://picsum.photos/200"/></div>
-                    <div class="col-sm-8">
-                        <div class="row">Title</div>
-                        <div class="row">Description</div>
-                        <div class="row">$0.00</div>
-                        <div class="row">+$0.00 shipping</div>
-                        <div class="row">Save to Watchlist</div>
+            {% for listing in titles %}
+                <div class="container mt-5 border rounded py-2">
+                    <div class="row">
+                        <!-- random image courtesy of https://picsum.photos/ -->
+                        <div class="col-auto">
+                            <img src="/static/auctions/images/mock/{{ listing.image_path }}" class="img-thumbnail"/>
+                        </div>
+                        <div class="col">
+                                <div class="mb-2"><span class="lead">{{ listing.title }}</span></div>
+                                <div class="mb-2">{{ listing.description|truncatewords:50 }}</div>
+                                <div class="mb-2"><span class="mark lead px-2">$0.00</span></div>
+                                <div class="mb-2"><em><small>+$0.00 shipping</small></em></div>
+                                <div class="mb-2"><small>Save to Watchlist</small></div>
+                        </div>
                     </div>
                 </div>
-            </div>
+            {% endfor %}
+            
         </div>
     </body>
 </html>
