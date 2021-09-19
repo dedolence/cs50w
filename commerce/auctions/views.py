@@ -3,6 +3,7 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from django.template.loader import get_template
 
 from .models import User, Listing, Bid, Comment, Category, Watchlist
 
@@ -44,7 +45,9 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    return HttpResponseRedirect(reverse("index"))
+    return render(request, "auctions/index.html", {
+        "message": "You have been logged out."
+    })
 
 
 def register(request):
@@ -84,6 +87,12 @@ def listing_page(request, listing_id):
         'listing': Listing.objects.get(pk=listing_id)
     })
 
+def create_listing(request):
+    if request.method == "POST":
+        pass
+    else:
+        return render(request, "auctions/createListing.html")
+
 def categories(request):
     return render(request, "auctions/categories.html", {
         'categories': Category.objects.all()
@@ -111,6 +120,11 @@ def getWatchlist(user_id):
 
     return watchlist
 
+def view_user(request, username):
+    return render(request, "auctions/user.html", {
+        "user": username
+    })
+
 # testing methods below
 def viewMockup(request):
     titles = generateListing(10)
@@ -127,6 +141,8 @@ def generateListing(amount):
         listing['title'] = generateTitle()
         listing['image_path'] = generateImage(i)
         listing['description'] = generateDescription()
+        listing['price'] = random.randint(1,9999)
+        listing['shipping'] = random.randint(5, 50)
 
         listings.append(listing)
     

@@ -11,6 +11,8 @@ urlpatterns = [
     path("listings/<int:listing_id>", views.listing_page, name="listing"),
     path("categories/", views.categories, name="categories"),
     path("categories/<category>", views.category, name="category"),
+    path("create/", views.create_listing, name="create_listing"),
+    path("users/<username>", views.view_user, name="view_user"),
     # for testing look
     path("mockup/", views.viewMockup, name="mockup")
 ]

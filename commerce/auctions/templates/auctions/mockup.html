@@ -64,8 +64,8 @@
                         <div class="col">
                                 <div class="mb-2"><span class="lead">{{ listing.title }}</span></div>
                                 <div class="mb-2">{{ listing.description|truncatewords:50 }}</div>
-                                <div class="mb-2"><span class="mark lead px-2">$0.00</span></div>
-                                <div class="mb-2"><em><small>+$0.00 shipping</small></em></div>
+                                <div class="mb-2"><span class="mark lead px-2">${{ listing.price }}.00</span></div>
+                                <div class="mb-2"><em><small>+${{ listing.shipping }}.00 shipping</small></em></div>
                                 <div class="mb-2"><small>Save to Watchlist</small></div>
                         </div>
                     </div>

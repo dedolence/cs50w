@@ -1,0 +1,19 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+    {% include 'auctions/pageTitle.html' with page="Create a New Listing" %}
+
+    {% if user.is_authenticated %}
+        <form action="{% url 'create_listing' %}" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+        </form>
+
+    {% else %}
+        <p>You must be logged in to create a listing.</p>
+        <p><a href="{% url 'login' %}">Click here to login</a></p>
+
+    {% endif %}
+
+{% endblock %}

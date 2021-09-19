@@ -8,6 +8,7 @@ class User(AbstractUser):
     Comment = models.ManyToManyField('Comment', blank=True)
 
 class Listing(models.Model):
+    image = models.ImageField(null=True, blank=True)
     title = models.CharField(max_length=64, null=True, blank=False)
     description = models.TextField(max_length=500, null=True, blank=False)
     starting_bid = models.IntegerField(null=True, blank=False)
@@ -21,7 +22,7 @@ class Listing(models.Model):
         return f"Listing title: {self.title}. Owner: {self.user_id}. Starting bid: {self.starting_bid}. Created at {self.timestamp}."
 
 class Bid(models.Model):
-    amount = models.IntegerField(null=True, blank=False)
+    amount = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=False)
     user = models.ForeignKey(User, on_delete=PROTECT, null=True)
     listing = models.ForeignKey(Listing, on_delete=CASCADE, null=True)
 

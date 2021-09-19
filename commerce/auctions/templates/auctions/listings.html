@@ -2,10 +2,6 @@
 
 {% block body %}
 
-    <ul>
-        {% for l in listings %}
-        <li>{{ l }}</li>
-        {% endfor %}
-    </ul>
+    {% include 'auctions/listing_block.html' with listings=listings %}
 
 {% endblock %}
