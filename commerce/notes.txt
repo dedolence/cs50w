@@ -62,4 +62,6 @@ So once again:
         /categories         - show all categories
         /categories/books   - show all listings in the book category
 
-    
+    9/19
+        switch to trello boards for further dev
+        
