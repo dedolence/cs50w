@@ -6,8 +6,11 @@
 
     {% if user.is_authenticated %}
         <form action="{% url 'create_listing' %}" method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-            {{ form }}
+            <ul>
+                {% csrf_token %}
+                {{ form.as_ul }}
+            </ul>
+            <button type="submit">Create Listing</button>
         </form>
 
     {% else %}

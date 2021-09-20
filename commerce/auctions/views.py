@@ -90,7 +90,9 @@ def listing_page(request, listing_id):
 
 def create_listing(request):
     if request.method == "POST":
-        pass
+        return render(request, "auctions/listing.html", {
+            'listing': "Replace with details of new listing"
+        })
     else:
         form = NewListingForm()
         return render(request, "auctions/createListing.html", {

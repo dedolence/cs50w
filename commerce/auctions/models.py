@@ -11,7 +11,7 @@ class Listing(models.Model):
     image = models.ImageField(null=True, blank=True)
     title = models.CharField(max_length=64, null=True, blank=False)
     description = models.TextField(max_length=500, null=True, blank=False)
-    starting_bid = models.IntegerField(null=True, blank=False)
+    starting_bid = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=False)
     user = models.ForeignKey(User, on_delete=PROTECT, related_name='listings', null=True)
     winner = models.ForeignKey(User, on_delete=PROTECT, related_name='won_listings', null=True, blank=True)
     category = models.ForeignKey('Category', on_delete=CASCADE, related_name='category_listings', null=True, blank=False)
