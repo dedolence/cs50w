@@ -5,14 +5,55 @@
     {% include 'auctions/pageTitle.html' with page="Create a New Listing" %}
 
     {% if user.is_authenticated %}
+    <div class="container w-75 ml-0">
         <form action="{% url 'create_listing' %}" method="POST" enctype="multipart/form-data">
-            <ul>
-                {% csrf_token %}
-                {{ form.as_ul }}
-            </ul>
-            <button type="submit">Create Listing</button>
+            {% csrf_token %}
+            <div class="row mb-4">
+                <label for="titleInput" class="col-sm-2 col-form-label">Title:</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" maxlength="64" id="titleInput" name="title"/>
+                </div>
+            </div>
+            <div class="row mb-4">
+                <label for="descriptionInput" class="col-sm-2 col-form-label">Item description:</label>
+                <div class="col-sm-10">
+                    <textarea class="form-control" maxlength="500" id="descriptionInput" name="description"></textarea>
+                </div>
+            </div>
+            <div class="row mb-4">
+                <label for="imageInput" class="col-sm-2 col-form-label">Add an image:</label>
+                <div class="col-sm-10">
+                    <input type="file" accept="image/png, image/jpeg, image/jpg" class="form-control-file" name="image" id="imageInput"/>
+                </div>
+            </div>
+            <div class="row mb-4">
+                <label for="bidInput" class="col-sm-2 col-form-label">Starting bid:</label>
+                <div class="col-sm-10">
+                    <input type="number" name="starting_bid" id="bidInput" min="0.01" max="9999.99" step="0.01"/>
+                </div>
+            </div>
+            <div class="row mb-4">
+                <label for="categoryInput" class="col-sm-2 col-form-label">Select a category:</label>
+                <div class="col-sm-10">
+                    <select name="category" id="categoryInput">
+                        <option value="0">----------</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.content }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-4">
+                <div class="col-sm-10 offset-sm-2">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" name="random" value="True" id="randomInput">
+                        <label for="randomInput" class="form-check-label">Generate a random listing</label>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Create Listing</button>
         </form>
-
+    </div>
     {% else %}
         <p>You must be logged in to create a listing.</p>
         <p><a href="{% url 'login' %}">Click here to login</a></p>

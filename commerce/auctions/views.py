@@ -6,7 +6,9 @@ from django.urls import reverse
 from django.template.loader import get_template
 
 from .models import User, Listing, Bid, Comment, Category, Watchlist
-from .forms import NewListingForm
+
+# no longer using a django-rendered form, as i want more control over styles
+# from .forms import NewListingForm
 
 #for testing
 from . import wordlist
@@ -94,9 +96,11 @@ def create_listing(request):
             'listing': "Replace with details of new listing"
         })
     else:
-        form = NewListingForm()
+        # not using modelForm anymore
+        # form = NewListingForm()
+        categories = Category.objects.all()
         return render(request, "auctions/createListing.html", {
-            'form': form
+            'categories': categories
         })
 
 def categories(request):
