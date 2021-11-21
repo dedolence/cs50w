@@ -12,7 +12,7 @@
                 <div class="mb-2 container mx-0 px-0">
                     <div class="row">
                         <div class="col"><small>Save to Watchlist</small></div>
-                        <div class="col text-right"><small>Posted by <a href="users/{{listing.user}}">{{ listing.user }}</a> at {{ listing.timestamp }}</small></div>
+                        <div class="col text-right"><small>Posted by <a href="{% url 'view_user' listing.user %}">{{ listing.user }}</a> at {{ listing.timestamp }}</small></div>
                     </div>
                 </div>
         </div>

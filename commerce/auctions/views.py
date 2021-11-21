@@ -21,7 +21,7 @@ def index(request):
     active_listings = Listing.objects.filter(user_id=request.user.id)
     
     return render(request, "auctions/index.html", {
-        'active_listings': active_listings,
+        'listings': active_listings,
         'watchlist': getWatchlist(request.user.id)
     })
 
@@ -131,9 +131,19 @@ def getWatchlist(user_id):
     return watchlist
 
 def view_user(request, username):
+    user = User.objects.get(username=username)
+    listings = Listing.objects.filter(user_id=user.id)
     return render(request, "auctions/user.html", {
-        "user": username
+        "user": user,
+        "listings": listings
     })
+
+def view_all_users(request):
+    return HttpResponseRedirect(reverse(''))
+
+
+
+
 
 # testing methods below
 def viewMockup(request):

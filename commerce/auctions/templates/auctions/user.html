@@ -1,5 +1,21 @@
 {% extends "auctions/layout.html"  %}
 
+{% load static %}
 {% block body %}
-    <p>User profile goes here.</p>
+    {% include 'auctions/pageTitle.html' with page="User profile" %}
+
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-md-2">
+                <img src="{% static 'auctions/images/user_avatar.png' %}" class="img-fluid">
+            </div>
+            <div class="col-md-10">
+                <h1>{{ user.username }}</h1>
+                <p class="text-muted">User since {{ user.date_joined }}</p>
+            </div>
+        </div>
+        <div class="row mt-5">
+            <h3>Listings</h3>
+        </div>
+    </div>
 {% endblock %}

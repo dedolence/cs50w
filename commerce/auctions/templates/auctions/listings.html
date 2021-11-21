@@ -2,6 +2,11 @@
 
 {% block body %}
 
-    {% include 'auctions/listing_block.html' with listings=listings %}
+    {% for listing in listings %}
+        {% include 'auctions/listing_block.html' with listing=listing %}
+    {% empty %}
+        <p>No listings.</p>
+    {% endfor %}
+    
 
 {% endblock %}

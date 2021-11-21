@@ -5,7 +5,11 @@
 
     {% if user.is_authenticated %}
 
-        {% include 'auctions/listing_block.html' with listings=active_listings %}
+        {% for listing in listings %}
+            {% include 'auctions/listing_block.html' with listing=listing %}
+        {% empty %}
+            <p>No listings.</p>
+        {% endfor %}
 
     {% else %}
         {% if message %}
@@ -20,7 +24,7 @@
 
         {% if user.is_authenticated %}
 
-            {% include 'auctions/listing_block.html' with listings=watchlist %}
+            <!--{% include 'auctions/listing_block.html' with listings=watchlist %}-->
 
         {% else %}
             <p><small>You must be logged in to see your watchlist.</small></p>

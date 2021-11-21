@@ -65,3 +65,19 @@ So once again:
     9/19
         switch to trello boards for further dev
         
+
+    11/20
+        coming back to this and figuring out what's going wrong has been a chore. but basically what i did last time i worked on this was change the way listings are included
+        via a template, and that's cascaded across a few other templates. before, i included a template with a loop to generate each listing; then changed it so that the loop
+        happens in the parent template, and the included template is for a single listing. i don't know if there's any better way to do it, but it was simplified so i'll stick
+        with what i changed.
+
+        however, this leads to another question. index.html should display the user's page when they are logged in (a login redirect otherwise). the question is whether to
+        rerout to a users/<name> rout, or use index.html to generate the user's page. i'm leaning towards index.html being a specific home user page that can include options
+        that otherwise wouldn't appear on a users/<name> rout. 
+
+        simply CANNOT get {% url 'view_user' listing.user %} to work within the listing_block.html template. "listing.user" DOES work when the url is removed, so this template
+        very definitively has access both to listing and listing.user property. simply {% url 'view_user' %} has no route attached to it.
+
+        workaround that may have to suffice. not using {% url %}, but instead "hard-coding" in <a href="users/{{ listing.user }}">. i'd so much rather use {% url %} because the
+        route to "users/" could change. 
