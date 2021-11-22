@@ -8,7 +8,7 @@ from django.template.loader import get_template
 from .models import User, Listing, Bid, Comment, Category, Watchlist
 
 # no longer using a django-rendered form, as i want more control over styles
-# from .forms import NewListingForm
+from .forms import NewListingForm
 
 #for testing
 from . import wordlist
@@ -18,7 +18,6 @@ from essential_generators import DocumentGenerator
 gen = DocumentGenerator()
 
 def index(request):
-
     if request.user.is_authenticated:    
         active_listings = Listing.objects.filter(user_id=request.user.id)
         return render(request, "auctions/index.html", {
@@ -100,11 +99,11 @@ def create_listing(request):
             'listing': "Replace with details of new listing"
         })
     else:
-        # not using modelForm anymore
-        # form = NewListingForm()
-        categories = Category.objects.all()
+        form = NewListingForm()
+        # categories = Category.objects.all()
         return render(request, "auctions/createListing.html", {
-            'categories': categories
+            # 'categories': categories
+            'form': form
         })
 
 def categories(request):

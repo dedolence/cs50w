@@ -10,6 +10,9 @@
     <div class="container w-75 ml-0">
         <form action="{% url 'create_listing' %}" method="POST" id="listingForm" enctype="multipart/form-data">
             {% csrf_token %}
+
+            {{ form }}
+            {% comment "" %}
             <div class="row mb-4">
                 <label for="titleInput" class="col-sm-2 col-form-label">Title:</label>
                 <div class="col-sm-10">
@@ -53,7 +56,9 @@
                     </div>
                 </div>
             </div>
-            <button type="submit" class="btn btn-primary" id="submit">Create Listing</button>
+            {% endcomment %}
+
+            <input type="submit" class="btn btn-primary" value="Create Listing">
         </form>
     </div>
     {% else %}

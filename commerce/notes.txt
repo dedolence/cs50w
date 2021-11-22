@@ -81,3 +81,7 @@ So once again:
 
         workaround that may have to suffice. not using {% url %}, but instead "hard-coding" in <a href="users/{{ listing.user }}">. i'd so much rather use {% url %} because the
         route to "users/" could change. 
+
+    11/21
+        better workaround is to send along an additional username variable so that i don't have to access the user property of the listing with the dot notation, which is
+        what i think is causing the issue.
