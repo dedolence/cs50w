@@ -2,8 +2,9 @@
 
 {% block body %}
 
+
     {% for listing in listings %}
-        {% include 'auctions/listing_block.html' with listing=listing %}
+        {% include 'auctions/listing_block.html' with listing=listing username=listing.user%}
     {% empty %}
         <p>No listings.</p>
     {% endfor %}

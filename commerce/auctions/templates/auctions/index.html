@@ -1,12 +1,12 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-    <h2>Active Listings</h2>
+    <h2>Your Active Listings</h2>
 
     {% if user.is_authenticated %}
 
         {% for listing in listings %}
-            {% include 'auctions/listing_block.html' with listing=listing %}
+            {% include 'auctions/listing_block.html' with listing=listing username=listing.user %}
         {% empty %}
             <p>No listings.</p>
         {% endfor %}
@@ -23,9 +23,11 @@
     <h2>Watchlist</h2>
 
         {% if user.is_authenticated %}
-
-            <!--{% include 'auctions/listing_block.html' with listings=watchlist %}-->
-
+            {% for listing in watchlist %}
+                {% include 'auctions/listing_block.html' with listing=listing %}
+            {% empty %}
+                <p>No listings being watched.</p>
+            {% endfor %}
         {% else %}
             <p><small>You must be logged in to see your watchlist.</small></p>
             <p><small><a href="{% url 'login' %}">Click here to login</a></small></p>

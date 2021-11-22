@@ -5,16 +5,22 @@
             <img src="/static/auctions/images/mock/{{ listing.image_path }}" class="img-thumbnail"/>
         </div>
         <div class="col">
-                <div class="mb-2"><span class="lead">{{ listing.title }}</span></div>
-                <div class="mb-2">{{ listing.description|truncatewords:100 }}</div>
-                <div class="mb-2"><span class="mark lead px-2">${{ listing.price }}.00</span></div>
-                <div class="mb-2"><em><small>+${{ listing.shipping }}.00 shipping</small></em></div>
-                <div class="mb-2 container mx-0 px-0">
-                    <div class="row">
-                        <div class="col"><small>Save to Watchlist</small></div>
-                        <div class="col text-right"><small>Posted by <a href="users/{{listing.user}}">{{ listing.user }}</a> at {{ listing.timestamp }}</small></div>
+            <div class="mb-2"><span class="lead">{{ listing.title }}</span></div>
+            <div class="mb-2">{{ listing.description|truncatewords:100 }}</div>
+            <div class="mb-2"><span class="mark lead px-2">${{ listing.price }}.00</span></div>
+            <div class="mb-2"><em><small>+${{ listing.shipping }}.00 shipping</small></em></div>
+            <div class="mb-2 container mx-0 px-0">
+                <div class="row">
+                    <div class="col col-sm-2"><small>Save to Watchlist</small></div>
+                    <div class="col col-sm-6 text-right"><small>Posted by <a href="{% url 'view_user' username %}">{{ listing.user }}</a> at {{ listing.timestamp }}</small></div>
+                    {% if username == listing.user %}
+                    <div class="col col-sm-4 text-right">
+                        <a class="btn btn-primary btn-sm my-1 my-md-0 text-light"><i class="bi bi-pencil-square"></i>&nbsp;Edit</a>
+                        <a class="btn btn-primary btn-sm my-1 my-md-0 text-light" role="button"><i class="bi bi-trash"></i>&nbsp;Delete</a>
                     </div>
+                    {% endif %}
                 </div>
+            </div>
         </div>
     </div>
 </div>

@@ -12,7 +12,6 @@ urlpatterns = [
     path("categories/", views.categories, name="categories"),
     path("categories/<category>", views.category, name="category"),
     path("create/", views.create_listing, name="create_listing"),
-    path("users", views.view_all_users, name="view_all_users"),
     path("users/<str:username>", views.view_user, name="view_user"),
     # for testing look
     path("mockup/", views.viewMockup, name="mockup")

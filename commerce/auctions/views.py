@@ -18,12 +18,16 @@ from essential_generators import DocumentGenerator
 gen = DocumentGenerator()
 
 def index(request):
-    active_listings = Listing.objects.filter(user_id=request.user.id)
-    
-    return render(request, "auctions/index.html", {
-        'listings': active_listings,
-        'watchlist': getWatchlist(request.user.id)
-    })
+
+    if request.user.is_authenticated:    
+        active_listings = Listing.objects.filter(user_id=request.user.id)
+        return render(request, "auctions/index.html", {
+            'username': request.user,
+            'listings': active_listings,
+            'watchlist': getWatchlist(request.user.id)
+        })
+    else:
+        return HttpResponseRedirect(reverse("login"))
 
 
 def login_view(request):
