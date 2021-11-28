@@ -7,8 +7,9 @@ from django.template.loader import get_template
 
 from .models import User, Listing, Bid, Comment, Category, Watchlist
 
-# no longer using a django-rendered form, as i want more control over styles
+# form handling
 from .forms import NewListingForm
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 #for testing
 from . import wordlist
@@ -83,6 +84,44 @@ def register(request):
         return render(request, "auctions/register.html")
 
 
+def create_listing(request):
+
+    # if POST, a new listing has been submitted to be previewed
+    if request.method == "POST":
+
+        # create form instance
+        form = NewListingForm(request.POST)
+        
+        # validate form
+        if form.is_valid():
+
+            # check to see if we need to preview or submit
+            if 'submit' in request.POST:
+                instance = form.save()
+                # STOP NEED TO ADD USER TO LISTING
+                return HttpResponseRedirect(reverse('listing', args=[instance.id]))
+            else:
+                form.save(commit=False)
+                return render(request, 'auctions/previewListing.html', {
+                    'form': form
+                })
+
+
+        # errors were found so return the form to the initial listing form page
+        else:
+            return render(request, "auctions/createListing.html", {
+                'form': form
+            })
+
+    # otherwise, GET will return the form to create a new listing
+    else:
+        form = NewListingForm()
+        # categories = Category.objects.all()
+        return render(request, "auctions/createListing.html", {
+            # 'categories': categories
+            'form': form
+        })
+
 def listings(request):
     return render(request, "auctions/listings.html", {
         "listings": Listing.objects.all()
@@ -93,18 +132,6 @@ def listing_page(request, listing_id):
         'listing': Listing.objects.get(pk=listing_id)
     })
 
-def create_listing(request):
-    if request.method == "POST":
-        return render(request, "auctions/listing.html", {
-            'listing': "Replace with details of new listing"
-        })
-    else:
-        form = NewListingForm()
-        # categories = Category.objects.all()
-        return render(request, "auctions/createListing.html", {
-            # 'categories': categories
-            'form': form
-        })
 
 def categories(request):
     return render(request, "auctions/categories.html", {

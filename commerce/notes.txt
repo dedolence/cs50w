@@ -85,3 +85,14 @@ So once again:
     11/21
         better workaround is to send along an additional username variable so that i don't have to access the user property of the listing with the dot notation, which is
         what i think is causing the issue.
+
+    11/26
+        for the sake of getting this project done, i am going to cancel image upload as a feature. with the way django works i would feel more comfortable doing a separate test
+        project to get a feel for how django does it. for now it seems just outside the scope of the project (and the project rubrik not only doesn't require it but does require
+        a link to a media url instead).
+
+    11/27
+        new listing path:
+            create_listing:
+                if GET: display form for new listing
+                if POST: validate form, render form for preview, POST either back to create_listing or to submit_listing

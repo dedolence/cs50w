@@ -8,7 +8,7 @@ class User(AbstractUser):
     Comment = models.ManyToManyField('Comment', blank=True)
 
 class Listing(models.Model):
-    image = models.ImageField(null=True, blank=True)
+    image_url = models.CharField(max_length=200, null=True, blank=False)
     title = models.CharField(max_length=64, null=True, blank=False)
     description = models.TextField(max_length=500, null=True, blank=False)
     starting_bid = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=False)
@@ -16,7 +16,6 @@ class Listing(models.Model):
     winner = models.ForeignKey(User, on_delete=PROTECT, related_name='won_listings', null=True, blank=True)
     category = models.ForeignKey('Category', on_delete=CASCADE, related_name='category_listings', null=True, blank=False)
     timestamp = models.DateTimeField(auto_now_add=True, null=True)
-    Comment = models.ManyToManyField('Comment', null=True, blank=True)
 
     def __str__(self):
         return f"Listing title: {self.title}. Owner: {self.user_id}. Starting bid: {self.starting_bid}. Created at {self.timestamp}."

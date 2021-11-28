@@ -4,12 +4,12 @@
 
 {% block body %}
 
-    {% include 'auctions/pageTitle.html' with page="Create a New Listing" %}
+    {% include 'auctions/pageTitle.html' with page="Preview Your Listing" %}
 
     {% if user.is_authenticated %}
         <div class="container w-75 ml-0 p-0">
         <p class="mb-5">Please fill out all fields.</p>
-            <form action="{% url 'create_listing' %}" method="POST" id="listingForm" enctype="multipart/form-data">
+            <form action="{% url 'create_listing' %}" method="POST" id="listingForm" name="listingForm" enctype="multipart/form-data">
                 {% csrf_token %}
 
                 <div class="row mb-4"><p class="mark">{{ form.non_field_errors }}</p></div>
@@ -38,6 +38,8 @@
                 <div class="row mb-4">
                     <div class="col-sm-9 offset-sm-3">
                         <input type="submit" class="btn btn-primary" value="Preview Listing" name="preview">
+                        or
+                        <input type="submit" class="btn btn-primary" value="Create Listing" name="submit">
                     </div>
                 </div>
 
