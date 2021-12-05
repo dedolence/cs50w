@@ -2,6 +2,6 @@
 
 {% block body %}
 
-    {{ listing }}
+    {% include 'auctions/listing_block.html' with listing=listing %}
 
 {% endblock %}

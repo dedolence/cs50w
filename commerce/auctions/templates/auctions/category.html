@@ -2,9 +2,11 @@
 
 {% block body %}
 
+    {% include 'auctions/pageTitle.html' with page=category_title %}
+
     <ul>
-    {% for category in category_listings %}
-        <li>{{ category }}</li>
+    {% for listing in category_listings %}
+        <li><a href="{% url 'listing' listing.id %}">{{ listing }}</a></li>
     {% endfor %}
     </ul>
 

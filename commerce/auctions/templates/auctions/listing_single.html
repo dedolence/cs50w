@@ -1,20 +1,53 @@
-<div class="container my-3 border rounded py-2">
+{% comment "Parameters" %}
+    listing = the listing to display
+    watch_options = include button for adding/removing listing to/from watchlist
+    owner_controls = include button to edit or delete listing
+    disappear = flag to trigger automatic deletion of the listing from the DOM (as in the case of a watchlist to remove the listing without requiring a page reload)
+{% endcomment %}
+<div class="container my-3 border rounded py-2" id="listing-{{listing.id}}">
     <div class="row">
-        <!-- random image courtesy of https://picsum.photos/ -->
         <div class="col-auto">
-            <img src="/static/auctions/images/mock/{{ listing.image_path }}" class="img-thumbnail"/>
+            <img src="{{ listing.image_url }}" class="img-thumbnail" width=200/>
         </div>
         <div class="col">
-                <div class="mb-2"><span class="lead">{{ listing.title }}</span></div>
-                <div class="mb-2">{{ listing.description|truncatewords:100 }}</div>
-                <div class="mb-2"><span class="mark lead px-2">${{ listing.price }}.00</span></div>
-                <div class="mb-2"><em><small>+${{ listing.shipping }}.00 shipping</small></em></div>
-                <div class="mb-2 container mx-0 px-0">
-                    <div class="row">
-                        <div class="col"><small>Save to Watchlist</small></div>
-                        <div class="col text-right"><small>Posted by <a href="{% url 'view_user' listing.user %}">{{ listing.user }}</a> at {{ listing.timestamp }}</small></div>
+            <div class="container-fluid">
+                <div class="row mb-2"><span class="small text-muted"><a href="{% url 'category' listing.category.id %}">{{ listing.category }}</a></span></div>
+                <div class="row mb-2"><span class="lead">{{ listing.title }}</span></div>
+                <div class="row mb-2">{{ listing.description|truncatewords:100 }}</div>
+                <div class="row mb-2"><span class="mark lead px-2">${{ listing.current_bid }}</span></div>
+                <div class="row mb-2"><em><small>+${{ listing.shipping }} shipping & handling</small></em></div>
+                <div class="row mb-2">
+                    <div class="container-fluid px-0 mx-0">
+                        <div class="row">
+                            <div class="col col-sm-8">
+                                {% if listing.user != request.user %}
+                                    <button class="btn btn-primary btn-sm my-1 my-md-0 text-light" onclick="watchListing({{ listing.id }}, '{% url 'watch_listing' listing.id %}')">
+                                        {% if watch == True %}
+                                            <i class="bi bi-heart" id="toast-icon-{{ listing.id }}"></i>&nbsp;Add to Watchlist
+                                        {% else %}
+                                            <i class="bi bi-heart-fill" id="toast-icon-{{ listing.id }}"></i>&nbsp;Watching
+                                        {% endif %}
+                                    </button>
+                                    <div class="toast position-absolute mt-2" role="alert" aria-live="assertive" aria-atomic="true" id="toast-{{ listing.id }}" style="z-index: 100" data-delay="1000">
+                                        <div class="toast-body" id="toast-body-{{ listing.id }}">
+                                            Added to watchlist!
+                                        </div>
+                                    </div>
+                                    <small>Posted by <a href="{% url 'view_user' listing.user %}">{{ listing.user }}</a> at {{ listing.timestamp }}.</small>
+                                {% else %}
+                                    <small>You posted this at {{ listing.timestamp }}.</small>
+                                {% endif %}
+                            </div>
+                            <div class="col col-sm-4 text-right">
+                                {% if listing.user == request.user %}
+                                    <a class="btn btn-primary btn-sm my-1 my-md-0 text-light"><i class="bi bi-pencil-square"></i>&nbsp;Edit</a>
+                                    <a class="btn btn-primary btn-sm my-1 my-md-0 text-light" role="button"><i class="bi bi-trash"></i>&nbsp;Delete</a>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </div>
         </div>
     </div>
 </div>
