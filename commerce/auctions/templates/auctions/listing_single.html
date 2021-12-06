@@ -20,9 +20,9 @@
                     <div class="container-fluid px-0 mx-0">
                         <div class="row">
                             <div class="col col-sm-8">
-                                {% if listing.user != request.user %}
+                                {% if owner_controls == False %}
                                     <button class="btn btn-primary btn-sm my-1 my-md-0 text-light" onclick="watchListing({{ listing.id }}, '{% url 'watch_listing' listing.id %}')">
-                                        {% if watch == True %}
+                                        {% if watching_currently == False %}
                                             <i class="bi bi-heart" id="toast-icon-{{ listing.id }}"></i>&nbsp;Add to Watchlist
                                         {% else %}
                                             <i class="bi bi-heart-fill" id="toast-icon-{{ listing.id }}"></i>&nbsp;Watching
@@ -39,7 +39,7 @@
                                 {% endif %}
                             </div>
                             <div class="col col-sm-4 text-right">
-                                {% if listing.user == request.user %}
+                                {% if owner_controls == True %}
                                     <a class="btn btn-primary btn-sm my-1 my-md-0 text-light"><i class="bi bi-pencil-square"></i>&nbsp;Edit</a>
                                     <a class="btn btn-primary btn-sm my-1 my-md-0 text-light" role="button"><i class="bi bi-trash"></i>&nbsp;Delete</a>
                                 {% endif %}

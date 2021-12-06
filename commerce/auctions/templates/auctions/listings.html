@@ -2,12 +2,7 @@
 
 {% block body %}
 
-    {% url 'watch_listing' as watch_url %}
-    {% for listing in listings %}
-        {% include 'auctions/listing_block.html' with listing=listing watch_url=watch_url %}
-    {% empty %}
-        <p>No listings.</p>
-    {% endfor %}
+    {% include 'auctions/listing_block.html' with listings=listings %}
     
 
 {% endblock %}

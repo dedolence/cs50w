@@ -6,5 +6,5 @@
 {% endcomment %}
 
 {% for listing in listings %}
-    {% if request.user==listing.user %}{% endif %}
+    {% include 'auctions/listing_single.html' listing=listing %}
 {% endfor %}

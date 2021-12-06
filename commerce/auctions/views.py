@@ -27,7 +27,6 @@ def index(request):
     if request.user.is_authenticated:    
         active_listings = Listing.objects.filter(user_id=request.user.id)
         return render(request, "auctions/index.html", {
-            'username': request.user,
             'listings': active_listings,
             'watchlist': getWatchlist(request.user.id)
         })
@@ -179,7 +178,7 @@ def watch_listing(request, listing_id):
     listing = Listing.objects.get(id=listing_id)
     watched_item = Watchlist(user=request.user, listing=Listing.objects.get(id=listing_id))
     watched_check = Watchlist.objects.get(listing=listing, user=request.user)
-    
+
     # check to see if the watched_item exists within the user's watchlist already
     if watched_check is None:
         watched_item.save()
