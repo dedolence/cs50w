@@ -151,7 +151,8 @@ def create_listing(request):
 
 def listings(request):
     return render(request, "auctions/listings.html", {
-        "listings": Listing.objects.all()
+        'listings': Listing.objects.all(),
+        'watchlist': getWatchlist(request.user.id)
     })
 
 def listing_page(request, listing_id):
