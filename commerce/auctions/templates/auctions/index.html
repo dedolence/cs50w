@@ -1,7 +1,13 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
+
+    {% if alert_warning %}
+    <div class="alert alert-warning">{% autoescape off %}{{ alert_warning }}{% endautoescape %}</div>
+    {% endif %}
+
     <h2>Your Active Listings</h2>
+
 
     {% if user.is_authenticated %}
 

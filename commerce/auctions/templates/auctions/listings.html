@@ -4,12 +4,12 @@
 
     {% for listing in listings %}
         {% if listing.user == request.user %}
-            {% include 'auctions/listing_single.html' with listing=listing watch_options=False owner_controls=True %}
+            {% include 'auctions/listing_single.html' with listing=listing watch_options=False owner_controls=True watching_currently=False disappear=False %}
         {% else %}
             {% if listing in watchlist %}
                 {% include 'auctions/listing_single.html' with listing=listing watch_options=True watching_currently=True owner_controls=False disappear=False %}
             {% else %}
-                {% include 'auctions/listing_single.html' with listing=listing watch_options=True watching_currently=False owner_controls=False %}
+                {% include 'auctions/listing_single.html' with listing=listing watch_options=True watching_currently=False owner_controls=False disappear=False %}
             {% endif %}
         {% endif %}
     {% endfor %}

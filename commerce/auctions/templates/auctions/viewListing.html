@@ -1,0 +1,13 @@
+{% extends 'auctions/layout.html' %}
+
+{% block body %}
+
+    {% block titleflag %}{% endblock titleflag %}
+
+    {% block listing_view %}
+        {% include 'auctions/listing_single.html' with listing=listing %}
+    {% endblock listing_view %}
+    
+    {% block controls %}{% endblock controls %}
+
+{% endblock %}

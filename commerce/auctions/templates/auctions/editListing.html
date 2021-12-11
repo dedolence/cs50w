@@ -1,0 +1,13 @@
+{% extends 'auctions/viewListing.html' %}
+
+{% block titleflag %}
+    <div class="alert alert-info">Edit Listing</div>
+{% endblock titleflag %}
+
+{% block listing_view %}
+    {% include 'auctions/listing_single.html' with listing=listing %}
+{% endblock listing_view %}
+
+{% block controls %}
+    {% include 'auctions/listingForm.html' with form=form edit_listing=True include_save_without_preview=True %}
+{% endblock controls %}

@@ -9,7 +9,7 @@
     {% if user.is_authenticated %}
         <div class="container w-75 ml-0 p-0">
 
-            {% include 'auctions/listing_block.html' with listing=listing %}
+            {% include 'auctions/listing_single.html' with listing=listing edit_mode=True %}
 
             <form action="{% url 'create_listing' %}" method="POST" id="listingForm" name="listingForm" enctype="multipart/form-data">
                 {% csrf_token %}

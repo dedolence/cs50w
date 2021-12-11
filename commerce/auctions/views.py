@@ -2,6 +2,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
+from django.http.response import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.template.loader import get_template
@@ -32,7 +33,6 @@ def index(request):
         })
     else:
         return HttpResponseRedirect(reverse("login"))
-
 
 def login_view(request):
     if request.method == "POST":
@@ -100,7 +100,7 @@ def register(request):
     else:
         return render(request, "auctions/register.html")
 
-
+@login_required
 def create_listing(request):
     # if GET, display new listing form
     if request.method == "GET":
@@ -111,6 +111,7 @@ def create_listing(request):
             'form': form
         })
 
+    # TODO: move this to the views.preview_listing() method     
     # else if POST, preview listing for changes or add to DB
     elif request.method == "POST":
 
@@ -129,7 +130,7 @@ def create_listing(request):
             })
         
         else:
-            # create a form insance with POST data
+            # create a form instance with POST data
             instance = form.save(commit=False)
             # attach user to the form instance
             instance.user = request.user
@@ -140,7 +141,7 @@ def create_listing(request):
                 instance.save()
                 # include many-to-many relationships
                 form.save_m2m()
-                return HttpResponseRedirect(reverse('listing', args=[instance.id]))
+                return HttpResponseRedirect(reverse('view_listing', args=[instance.id]))
             else:
                 return render(request, 'auctions/previewListing.html', {
                     'listing': instance,
@@ -148,6 +149,25 @@ def create_listing(request):
                     'form_controls': False
                 })
 
+@login_required
+def edit_listing(request, listing_id):
+    # TODO: implement. needs to check if there are bids made on the item and disable editing accordingly
+    # (wouldn't want some bait-and-switch exploit)
+    return HttpResponseRedirect(reverse("view_listing", args=[listing_id]))
+
+@login_required
+def delete_listing(request, listing_id):
+    listing = Listing.objects.get(id=listing_id)
+    if request.method == "GET":
+        return render(request, 'auctions/deleteListing.html', {
+            'listing': listing
+        })
+    else:
+        title = listing.title
+        listing.delete()
+        return render(request, 'auctions/index.html', {
+            'alert_warning': f'Listing "<em>{title}</em>" has been deleted.'
+        })
 
 def listings(request):
     return render(request, "auctions/listings.html", {
@@ -156,8 +176,17 @@ def listings(request):
     })
 
 def listing_page(request, listing_id):
-    return render(request, "auctions/listing.html", {
-        'listing': Listing.objects.get(pk=listing_id)
+    listing = Listing.objects.get(pk=listing_id)
+    owner_controls = True if listing.user == request.user else False
+    watch_options = True if owner_controls == False else True
+    watchlist = getWatchlist(request.user.id)
+    watching_currently = True if listing in watchlist else False
+    return render(request, "auctions/viewListing.html", {
+        'listing': listing,
+        'owner_controls': owner_controls,
+        'watch_options': watch_options,
+        'disappear': False,
+        'watching_currently': watching_currently
     })
 
 
@@ -176,17 +205,17 @@ def category(request, category_id):
 
 @csrf_exempt
 def watch_listing(request, listing_id):
-    listing = Listing.objects.get(id=listing_id)
-    watched_item = Watchlist(user=request.user, listing=Listing.objects.get(id=listing_id))
-    watched_check = Watchlist.objects.get(listing=listing, user=request.user)
-
-    # check to see if the watched_item exists within the user's watchlist already
-    if watched_check is None:
-        watched_item.save()
-        return HttpResponse("Added to watchlist!")
+    if not request.user.is_authenticated:
+        response = dict(message="You must be logged in to do that.", button_text="Add to Watchlist")
     else:
-        watched_check.delete()
-        return HttpResponse("Removed from watchlist.")
+        listing = Listing.objects.get(id=listing_id)
+        watched_item, created = Watchlist.objects.get_or_create(user=request.user, listing=listing)
+        if created:
+            response = dict(message='Added to watchlist.', button_text='Watching')
+        else:
+            watched_item.delete()
+            response = dict(message="Removed from watchlist.", button_text='Add to Watchlist')
+    return JsonResponse(response)
 
 def getWatchlist(user_id):
     """
@@ -213,6 +242,20 @@ def view_user(request, username):
 
 def view_all_users(request):
     return HttpResponseRedirect(reverse(''))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

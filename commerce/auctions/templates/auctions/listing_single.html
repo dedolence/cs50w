@@ -3,6 +3,7 @@
     watch_options = include button for adding/removing listing to/from watchlist
     owner_controls = include button to edit or delete listing
     disappear = flag to trigger automatic deletion of the listing from the DOM (as in the case of a watchlist to remove the listing without requiring a page reload)
+    watching_currently = whether the listing is currently in the user's watchlist
 {% endcomment %}
 
 <div class="container my-3 border rounded py-2" id="listing-{{listing.id}}">
@@ -12,8 +13,16 @@
         </div>
         <div class="col">
             <div class="container-fluid">
-                <div class="row mb-2"><span class="small text-muted"><a href="{% url 'category' listing.category.id %}">{{ listing.category }}</a></span></div>
-                <div class="row mb-2"><span class="lead">{{ listing.title }}</span></div>
+                <div class="row mb-2"><span class="small text-muted">
+                    <a href="{% url 'category' listing.category.id %}">{{ listing.category }}</a></span>
+                </div>
+                <div class="row mb-2"><a href="
+                    {% if listing.id %}
+                        {% url 'view_listing' listing.id %}
+                    {% else %}
+                        #
+                    {% endif %}
+                    " class="lead text-decoration-none">{{ listing.title }}</a></div>
                 <div class="row mb-2">{{ listing.description|truncatewords:100 }}</div>
                 <div class="row mb-2"><span class="mark lead px-2">${{ listing.current_bid }}</span></div>
                 <div class="row mb-2"><em><small>+${{ listing.shipping }} shipping & handling</small></em></div>
@@ -22,11 +31,11 @@
                         <div class="row">
                             <div class="col col-sm-8">
                                 {% if owner_controls == False %}
-                                    <button class="btn btn-primary btn-sm my-1 my-md-0 text-light" onclick="watchListing({{ listing.id }}, '{% url 'watch_listing' listing.id %}')">
+                                    <button class="btn btn-primary btn-sm my-1 my-md-0 text-light" onclick="watchListing({{ listing.id }}, '{% url 'watch_listing' listing.id %}', {{ disappear|lower }})">
                                         {% if watching_currently == False %}
-                                            <i class="bi bi-heart" id="toast-icon-{{ listing.id }}"></i>&nbsp;Add to Watchlist
+                                            <i class="bi bi-heart" id="toast-icon-{{ listing.id }}"></i>&nbsp;<span id="toast-button-text-{{ listing.id }}">Add to Watchlist</span>
                                         {% else %}
-                                            <i class="bi bi-heart-fill" id="toast-icon-{{ listing.id }}"></i>&nbsp;Watching
+                                            <i class="bi bi-heart-fill" id="toast-icon-{{ listing.id }}"></i>&nbsp;<span id="toast-button-text-{{ listing.id }}">Watching</span>
                                         {% endif %}
                                     </button>
                                     <div class="toast position-absolute mt-2" role="alert" aria-live="assertive" aria-atomic="true" id="toast-{{ listing.id }}" style="z-index: 100" data-delay="1000">
@@ -41,8 +50,8 @@
                             </div>
                             <div class="col col-sm-4 text-right">
                                 {% if owner_controls == True %}
-                                    <a class="btn btn-primary btn-sm my-1 my-md-0 text-light"><i class="bi bi-pencil-square"></i>&nbsp;Edit</a>
-                                    <a class="btn btn-primary btn-sm my-1 my-md-0 text-light" role="button"><i class="bi bi-trash"></i>&nbsp;Delete</a>
+                                    <a class="btn btn-primary btn-sm my-1 my-md-0 text-light" href="{% url 'edit_listing' listing_id=listing.id %}" role="button"><i class="bi bi-pencil-square"></i>&nbsp;Edit</a>
+                                    <a class="btn btn-primary btn-sm my-1 my-md-0 text-light" href="{% url 'delete_listing' listing_id=listing.id %}" role="button"><i class="bi bi-trash"></i>&nbsp;Delete</a>
                                 {% endif %}
                             </div>
                         </div>
