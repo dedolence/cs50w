@@ -29,19 +29,7 @@
 
     <div class="row mb-4">
         <div class="col-sm-9 offset-sm-3">
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="random" id="randomInput" oninput="remove_requirements()">
-                <label for="randomInput" class="form-check-label">Generate a random listing</label>
-            </div>
-        </div>
-    </div>
-
-    <div class="row mb-4">
-        <div class="col-sm-9 offset-sm-3">
-            <input type="submit" class="btn btn-secondary" value="Preview Listing" name="preview">
-            {% if include_save_without_preview %}
-                <input type="submit" class="btn btn-primary" value="Submit Without Preview" name="submit">
-            {% endif %}
+            <input type="submit" class="btn btn-primary" value="Save Changes" name="submit">
         </div>
     </div>
 

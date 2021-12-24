@@ -2,12 +2,22 @@
 
 {% block body %}
 
-    {% block titleflag %}{% endblock titleflag %}
+    {% include 'auctions/pageTitle.html' with page="Listing: " listing_title=listing_bundle.listing.title %}
 
-    {% block listing_view %}
-        {% include 'auctions/listing_single.html' with listing=listing %}
-    {% endblock listing_view %}
-    
-    {% block controls %}{% endblock controls %}
+    {% if expired %}
+        <div class="alert alert-danger">This listing has expired.</div>
+    {% endif %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-9">
+                {% include 'auctions/listing_single.html' with listing=listing_bundle.listing %}
+            </div>
+            <div class="col-lg-3">
+                {% if request.user != listing_bundle.listing.user %}
+                    {% include 'auctions/bidWidget.html' with listing=listing_bundle.listing current_bid=listing_bundle.current_bid expiration=listing_bundle.expiration_bundle %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
 
 {% endblock %}
