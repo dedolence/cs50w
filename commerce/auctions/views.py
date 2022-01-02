@@ -50,6 +50,7 @@ def index(request, message_code=None, id=None):
         active_listings_raw = Listing.objects.filter(user_id=request.user.id)
         active_listings = [getListing(request, id=None, listing=listing) for listing in active_listings_raw]
         watchlist = [getListing(request, None, listing) for listing in getWatchlist(request)]
+        
         if request.method == 'GET':
             return render(request, "auctions/index.html", {
                 'listings': active_listings,
