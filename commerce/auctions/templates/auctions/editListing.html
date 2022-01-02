@@ -1,13 +1,22 @@
-{% extends 'auctions/viewListing.html' %}
+{% extends "auctions/layout.html" %}
 
-{% block titleflag %}
-    <div class="alert alert-info">Edit Listing</div>
-{% endblock titleflag %}
+{% block body %}
 
-{% block listing_view %}
-    {% include 'auctions/listing_single.html' with listing=listing %}
-{% endblock listing_view %}
+    {% include 'auctions/pageTitle.html' with page="Edit Listing" %}
 
-{% block controls %}
-    {% include 'auctions/listingForm.html' with form=form edit_listing=True include_save_without_preview=True %}
-{% endblock controls %}
+    {% if user.is_authenticated %}
+        <div class="container w-75 ml-0 p-0">
+        
+        {% include 'auctions/listing_single.html' with listing=listing_bundle.listing expiration=listing_bundle.expiration_bundle watch_options=False owner_controls=False watching_currently=False disappear=False %}
+
+        {# TODO: REFACTOR TO USE AN INCLUDE #}
+        {% include 'auctions/listingForm.html' with listing_form=edit_listing_form new_listing=False %}
+
+    {% else %}
+
+        <p>You must be logged in to create a listing.</p>
+        <p><a href="{% url 'login' %}">Click here to login</a></p>
+    
+    {% endif %}
+
+{% endblock %}

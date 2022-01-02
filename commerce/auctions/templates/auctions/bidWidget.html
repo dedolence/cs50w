@@ -12,7 +12,7 @@
         <h5 class="text-center">Bidding Is Closed</h5>
         <hr />
         <p>Starting bid: <b>${{ listing.starting_bid|floatformat:"2g" }}</b><p>
-        {% if listing.winning_bid is None %}
+        {% if listing.winning_bid is None or listing.winner is None %}
             <p class="lead">No winner.</p>
         {% else %}
             <p class="lead">Winning bid: <b>${{ listing.winning_bid|floatformat:"2g"|default:"0" }}</b><p>
@@ -22,7 +22,7 @@
     {% else %}
         <h5 class="text-center">Place a Bid</h5>
         <hr />
-        <p class="lead">Current bid: <b>${{ current_bid.amount|floatformat:"2g"|default:listing.starting_bid }}</b></p>
+        <p class="lead">Current bid: <b>${{ listing.current_bid|floatformat:"2g"|default:listing.starting_bid }}</b></p>
         <p class="small">
             {% if current_bid.user %}
                 Placed by <a href="{% url 'view_user' current_bid.user %}">{{ current_bid.user }}</a>

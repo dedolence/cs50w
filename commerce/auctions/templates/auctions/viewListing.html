@@ -2,22 +2,42 @@
 
 {% block body %}
 
-    {% include 'auctions/pageTitle.html' with page="Listing: " listing_title=listing_bundle.listing.title %}
+        {% include 'auctions/pageTitle.html' with page="Listing: " listing_title=listing_bundle.listing.title %}
+        
+        {% if message %}
+            <div class="alert alert-{{message.1}}">{{message.0}}</div>
+        {% endif %}
 
-    {% if expired %}
-        <div class="alert alert-danger">This listing has expired.</div>
-    {% endif %}
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-9">
-                {% include 'auctions/listing_single.html' with listing=listing_bundle.listing %}
-            </div>
-            <div class="col-lg-3">
-                {% if request.user != listing_bundle.listing.user %}
-                    {% include 'auctions/bidWidget.html' with listing=listing_bundle.listing current_bid=listing_bundle.current_bid expiration=listing_bundle.expiration_bundle %}
-                {% endif %}
-            </div>
-        </div>
-    </div>
+        {% if alertSuccess %}
+            <div class="alert alert-success"><i class="bi bi-check-circle"></i> {{ alertSuccess }}</div>
+        {% elif alertLowBid %}
+            <div class="alert alert-warning"><i class="bi bi-exclamation-triangle"></i> {{ alertLowBid }}</div>
+        {% elif alertExpired %}
+            <div class="alert alert-danger"><i class="bi bi-exclamation-octagon"></i> {{ alertExpired }}</div>
+        {% endif %}
 
-{% endblock %}
+        {% if expired %}
+            <div class="alert alert-danger">This listing has expired.</div>
+        {% endif %}
+
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-9">
+                        {% if listing_bundle.listing.user == request.user %}
+                            {% include 'auctions/listing_single.html' with listing=listing_bundle.listing expiration=listing_bundle.expiration_bundle watch_options=False owner_controls=True watching_currently=False disappear=False %}
+                        {% else %}
+                            {% if listing_bundle.watching_currently == True %}
+                                {% include 'auctions/listing_single.html' with listing=listing_bundle.listing expiration=listing_bundle.expiration_bundle owner_controls=False watch_options=True disappear=False watching_currently=True %}
+                            {% else %}
+                                {% include 'auctions/listing_single.html' with listing=listing_bundle.listing expiration=listing_bundle.expiration_bundle watch_options=True watching_currently=False owner_controls=False disappear=False %}
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    <div class="col-lg-3">
+                        {% if request.user != listing_bundle.listing.user %}
+                            {% include 'auctions/bidWidget.html' with listing=listing_bundle.listing expiration=listing_bundle.expiration_bundle %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+{% endblock body %}

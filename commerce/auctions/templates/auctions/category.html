@@ -1,13 +1,30 @@
-{% extends "auctions/layout.html" %}
+{% extends "auctions/listings.html" %}
 
-{% block body %}
-
+{% block title %}
     {% include 'auctions/pageTitle.html' with page=category_title %}
+{% endblock title %}
 
-    <ul>
-    {% for listing in category_listings %}
-        <li><a href="{% url 'listing' listing.id %}">{{ listing }}</a></li>
+{% block control_block_upper %}
+    {% url 'category' category_id as control_url %}
+    {% include 'auctions/listingControls.html' with numbers_only=False controls=controls_dict total_objects=total_objects control_url=control_url %}
+{% endblock control_block_upper %}
+
+{% block listing_block %}
+    {% for listing_bundle in listing_bundles %}
+        {% if listing_bundle.listing.user == request.user %}
+            {% include 'auctions/listing_single.html' with listing=listing_bundle.listing expiration=listing_bundle.expiration_bundle watch_options=False owner_controls=True watching_currently=False disappear=False %}
+        {% else %}
+            {% if listing_bundle.watching_currently == True %}
+                {% include 'auctions/listing_single.html' with listing=listing_bundle.listing expiration=listing_bundle.expiration_bundle owner_controls=False watch_options=True disappear=False watching_currently=True %}
+            {% else %}
+                {% include 'auctions/listing_single.html' with listing=listing_bundle.listing expiration=listing_bundle.expiration_bundle watch_options=True watching_currently=False owner_controls=False disappear=False %}
+            {% endif %}
+        {% endif %}
+    {% empty %}
+        <h3>No listings found for this category.</h3>
     {% endfor %}
-    </ul>
+{% endblock listing_block %}
 
-{% endblock %}
+{% block control_block_lower %}
+    {% include 'auctions/listingControls.html' with numbers_only=True controls=controls_dict total_objects=total_objects %}
+{% endblock control_block_lower %}

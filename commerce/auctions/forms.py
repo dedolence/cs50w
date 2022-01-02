@@ -5,7 +5,7 @@ from django.forms import ModelForm
 from .models import Category
 from .models import Listing
 
-class NewListingForm(ModelForm):
+class NewListingForm(forms.ModelForm):
     class Meta:
         model = Listing
         fields = ['title', 'description', 'image_url', 'starting_bid', 'shipping', 'category']

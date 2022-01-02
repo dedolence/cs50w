@@ -1,0 +1,43 @@
+<div class="container" id="listingControls">
+    <form action="{% url 'all_listings' %}" method="POST" id="listingControlsForm">
+        <input type="hidden" name="" value="" id="listingControlsInput">
+    </form>
+    <div class="row">
+        <nav aria-label="Listing display options" class="p-0 btn-toolbar d-flex justify-content-between">
+            <div class="btn-group">
+                <ul class="pagination pagination-sm" data-clickable data-action="setNumber">
+                    <li class="page-item disabled"><span class="page-link">Listings per page:</span></li>
+                    <li class="page-item active"><a href="#" class="page-link">25</a></li>
+                    <li class="page-item"><a href="#" class="page-link">50</a></li>
+                    <li class="page-item"><a href="#" class="page-link">100</a></li>
+                    <li class="page-item"><a href="#" class="page-link">200</a></li>
+                </ul>
+            </div>
+            <div class="btn-group">
+                <ul class="pagination" data-clickable data-action="setPage">
+                    <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                    <li class="page-item disabled"><a href="#" class="page-link">First</a></li>
+                    <li class="page-item active"><a href="#" class="page-link">1</a></li>
+                    <li class="page-item"><a href="#" class="page-link">2</a></li>
+                    <li class="page-item"><a href="#" class="page-link">3</a></li>
+                    <li class="page-item"><a href="#" class="page-link">Next</a></li>
+                </ul>
+            </div>
+            <div class="btn-group">
+                <ul class="pagination pagination-sm" data-clickable data-action="setOrder">
+                    <li class="page-item disabled"><span class="page-link">Sort by:</span></li>
+                    <li class="page-item active"><a href="#" class="page-link">Newest first</a></li>
+                    <li class="page-item"><a href="#" class="page-link">Oldest first</a></li>
+                </ul>
+            </div>
+        </nav>
+        <div class="btn-group d-flex justify-content-end">
+            <div class="form-check" data-clickable data-action="toggleExpiredListings">
+                <input class="form-check-input" type="checkbox" value="" id="toggleExpiredListingsElement">
+                <label class="form-check-label small text-muted" for="toggleExpiredListingsElement">
+                    Show expired listings.
+                </label>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,15 +1,30 @@
-<form action="
-    {% if new_listing == True %}
-        {% url 'create_listing' %}
-    {% elif edit_listing == True %}
-        {% url 'edit_listing' listing.id %}
-    {% endif %}
-" method="POST" id="listingForm" enctype="multipart/form-data">
+{% comment %}
+    new_listing = True/False
+{% endcomment %}
+
+{% if new_listing %}
+    {% url 'create_listing' as action_url %}
+{% else %}
+    {% url 'edit_listing' as action_url %}
+{% endif %}
+
+<form action="{{action_url}}" method="POST" id="listingForm" enctype="multipart/form-data">
     {% csrf_token %}
 
     <div class="row mb-4"><p class="mark">{{ form.non_field_errors }}</p></div>
 
-    {% for field in form %}
+    {% if new_listing %}
+        <div class="row mb-4">
+            <div class="col-sm-9 offset-sm-3">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" name="random" id="randomInput" oninput="remove_requirements()">
+                    <label for="randomInput" class="form-check-label">Generate a random listing</label>
+                </div>
+            </div>
+        </div>    
+    {% endif %}
+
+    {% for field in listing_form %}
         <div class="row mb-4">
             <div class="col-sm-3">
                 <label for="{{ field.id_for_label }}" class="col-form-label d-block">{{ field.label }}:</label>
@@ -29,7 +44,11 @@
 
     <div class="row mb-4">
         <div class="col-sm-9 offset-sm-3">
-            <input type="submit" class="btn btn-primary" value="Save Changes" name="submit">
+            {% if new_listing %}
+                <input type="submit" class="btn btn-primary" value="Preview Listing" name="preview">
+            {% else %}
+                <input type="submit" class="btn btn-primary" value="Save Changes" name="submit">
+            {% endif %}
         </div>
     </div>
 
