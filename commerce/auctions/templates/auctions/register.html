@@ -2,7 +2,9 @@
 
 {% block body %}
 
-    <h2>Register</h2>
+    {% block breadcrumb %}
+        {% include 'auctions/includes/breadcrumb.html' with page='Registration' %}
+    {% endblock breadcrumb %}
 
     {% if message %}
         <div>{{ message }}</div>

@@ -2,7 +2,9 @@
 
 {% block body %}
 
-    <h2>Login</h2>
+    {% block breadcrumb %}
+        {% include 'auctions/includes/breadcrumb.html' with page='Login' %}
+    {% endblock breadcrumb %}
 
     {% if message %}
         <div>{{ message }}</div>

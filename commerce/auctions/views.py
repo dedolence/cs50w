@@ -348,6 +348,10 @@ def view_user(request, username):
         "listings": listings
     })
 
+
+def search(request):
+    return render(request, "auctions/index.html")
+
 # //////////////////////////////////////////////////////
 # UTILITY FUNCTIONS
 # //////////////////////////////////////////////////////

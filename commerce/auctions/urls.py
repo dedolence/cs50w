@@ -22,6 +22,7 @@ urlpatterns = [
     path("delete/<int:listing_id>", views.delete_listing, name="delete_listing"),
     path("accounts/<str:username>", views.view_user, name="view_user"),
     path("cart/", views.shopping_cart, name="shopping_cart"),
+    path("search/", views.search, name="search"),
     # for testing 
     path("datetime/", views.datetime, name="datetime"),
     path("mockup/", views.viewMockup, name="mockup"),

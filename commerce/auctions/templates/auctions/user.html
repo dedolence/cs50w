@@ -2,7 +2,10 @@
 
 {% load static %}
 {% block body %}
-    {% include 'auctions/pageTitle.html' with page="User profile" %}
+
+    {% block breadcrumb %}
+        {% include 'auctions/includes/breadcrumb.html' with page='User profile: ' listing_title=request.user %}
+    {% endblock breadcrumb %}
 
     <div class="container">
         <div class="row mb-5">

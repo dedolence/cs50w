@@ -2,14 +2,16 @@
 
 {% block body %}
 
-    {% include 'auctions/pageTitle.html' with page="Create a New Listing" %}
+    {% block breadcrumb %}
+        {% include 'auctions/includes/breadcrumb.html' with page='Create Listing' %}
+    {% endblock breadcrumb %}
 
     {% if user.is_authenticated %}
         <div class="container w-75 ml-0 p-0">
         <p class="mb-5">Please fill out all fields.</p>
 
         {# TODO: REFACTOR TO USE AN INCLUDE #}
-        {% include 'auctions/listingForm.html' with listing_form=new_listing_form new_listing=True %}
+        {% include 'auctions/includes/listingForm.html' with listing_form=new_listing_form new_listing=True %}
 
     {% else %}
 
