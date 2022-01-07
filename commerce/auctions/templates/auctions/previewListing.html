@@ -11,49 +11,9 @@
     {% if user.is_authenticated %}
         <div class="container w-75 ml-0 p-0">
 
-            {% include 'auctions/includes/listing_single.html' with listing=listing edit_mode=True %}
+            {% include 'auctions/includes/listing_single.html' with listing=listing expiration=listing_bundle.expiration_bundle watch_options=False owner_controls=False watching_currently=False disappear=False %}
 
-            <form action="{% url 'create_listing' %}" method="POST" id="listingForm" name="listingForm" enctype="multipart/form-data">
-                {% csrf_token %}
-
-                <div class="row mb-4"><p class="mark">{{ form.non_field_errors }}</p></div>
-
-                {% for field in form %}
-                    <div class="row mb-4">
-                        <div class="col-sm-3">
-                            <label for="{{ field.id_for_label }}" class="col-form-label d-block">{{ field.label }}:</label>
-                        </div>
-                        <div class="col-sm-9">
-                            {{ field }}
-                            <div class="text-danger text-small">
-                                <ul class="ml-0">
-                                    {% for error in field.errors  %}
-                                        <li class="text-danger small">{{ error }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-
-                <div class="row mb-4">
-                    <div class="col-sm-9 offset-sm-3">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" name="random" value="True" id="randomInput">
-                            <label for="randomInput" class="form-check-label">Generate a new random listing</label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row mb-4">
-                    <div class="col-sm-9 offset-sm-3">
-                        <input type="submit" class="btn btn-primary" value="Preview Changes" name="preview">
-                        or
-                        <input type="submit" class="btn btn-primary" value="Create Listing" name="submit">
-                    </div>
-                </div>
-
-            </form>
+            {% include 'auctions/includes/listingForm.html' with listing_form=form preview_listing=True %}
         </div>
 
     {% else %}

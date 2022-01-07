@@ -1,81 +1,302 @@
+import decimal
+import random
+from datetime import timedelta
+from math import floor
+
+import requests
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.paginator import Paginator
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.http.response import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
-from django.views.decorators.csrf import csrf_exempt    # to make the watchlist AJAX request work, which doesn't use a CSRF token
-from django.core.paginator import Paginator
-from .models import User, Listing, Bid, Comment, Category, Watchlist, Notification
-from math import floor
-from .strings import *
-from .notifications import *
-
-# form handling
-from .forms import NewListingForm
-
-#for testing
-from . import wordlist
-import random
-import requests
-from essential_generators import DocumentGenerator
-
 from django.utils import timezone
-from datetime import timedelta
+from django.views.decorators.csrf import \
+    csrf_exempt  # to make the watchlist AJAX request work, which doesn't use a CSRF token
+
+from . import wordlist
+from .forms import NewListingForm
+from .globals import *
+from .models import Bid, Category, Comment, Listing, Notification, User
+from .notifications import *
+from .strings import *
+
+# for testing
+# from .testing import *
 
 
-gen = DocumentGenerator()
+# //////////////////////////////////////////////////////
+# URL PATH VIEWS
+#   -ajax
+#   -category
+#   -categories
+#   -comment
+#   -create_listing
+#   -delete_listing
+#   -edit_listing
+#   -index
+#   -listing_page
+#   -listings
+#   -login
+#   -logout_view
+#   -place_bid
+#   -register
+#   -search
+#   -shopping_cart
+#   -view_all_users
+#   -view_user
+# //////////////////////////////////////////////////////
 
-# globals
-LOCAL_TIMEZONE = timezone.now().astimezone().tzinfo
-LISTING_EXPIRATION_DAYS = 14        # global value for how long listings are active
+
+@csrf_exempt
+def ajax(request, action, id=None):
+    if request.method == 'GET':
+        return HttpResponseRedirect(reverse("index"))
+    else:
+        response = {}
+        if not request.user.is_authenticated:
+            response["message"] = "You must be logged in to do that." 
+            response["button_text"] = "Add to Watchlist", 
+            response["undo"] = True
+        else:
+            if action == 'watch_listing':
+                listing = Listing.objects.get(id=id)
+                watchlist = request.user.watchlist
+                if listing in watchlist.all():
+                    watchlist.remove(listing)
+                    response["message"] = "Removed from watchlist."
+                    response["button_text"] = "Add to Watchlist"
+                else:
+                    watchlist.add(listing)
+                    response["message"] = "Added to watchlist."
+                    response["button_text"] = "Watching"
+            elif action == 'dismiss':
+                try:
+                    notification = Notification.objects.get(pk=id)
+                    notification.delete()
+                except ObjectDoesNotExist:
+                    pass
+            elif action == 'generate_comment':
+                message = ''
+                for i in range(0, random.randint(1,5)):
+                    message += GEN.sentence()
+                response["message"] = message
+        return JsonResponse(response)
 
 
+def category(request, category_id):
+    category_title = Category.objects.get(id=category_id)
+    category_listings_raw = Listing.objects.filter(category_id=category_id)
+    page_tuple = get_page(request, category_listings_raw)
+    return render(request, "auctions/category.html", {
+        'category_id': category_id,
+        'category_title': category_title,
+        'listing_bundles': page_tuple[1],
+        'controls_dict': page_tuple[0]
+    })
 
-def index(request, message_code=None, id=None):
-    if request.user.is_authenticated:
-        message = ''
-        # purge listings that have expired
-        purgeListings(request)
 
-        # parse message, if any
-        if message_code:
-            if message_code == 1:
-                message = (MESSAGE_LISTING_DELETED.format(id), 'warning')
-            elif message_code == 2:
-                message = (MESSAGE_LISTING_EDIT_PROHIBITED.format(id), 'warning')
+def categories(request):
+    return render(request, "auctions/categories.html", {
+        'categories': Category.objects.all()
+    })
 
-        notifications = get_notifications(request.user)
-        active_listings_raw = Listing.objects.filter(user_id=request.user.id)
-        active_listings = [getListing(request, id=None, listing=listing) for listing in active_listings_raw]
-        watchlist = [getListing(request, None, listing) for listing in getWatchlist(request)]
+
+def comment(request):
+    if request.method == 'GET':
+        return HttpResponseRedirect(reverse("index"))
+    else:
+        # need to perform some kinda validation on the input here
+        content = request.POST["content"]
+        listing = Listing.objects.get(pk=request.POST["listing_id"])
+        user = request.user
+        replyTo = request.POST["replyTo"] if 'replyTo' in request.POST else None
+        comment = Comment.objects.create(content=content, listing=listing, user=user, replyTo=replyTo)
+        return HttpResponseRedirect(reverse("view_listing", args=[request.POST["listing_id"]]))
+
+
+@login_required
+def create_listing(request):
+    # if GET, display new listing form
+    if request.method == "GET":
+        new_listing_form = NewListingForm()
+        # categories = Category.objects.all()
+        return render(request, "auctions/createListing.html", {
+            # 'categories': categories
+            'form': new_listing_form
+        })
+
+    # TODO: move this to the views.preview_listing() method     
+    # else if POST, preview listing for changes or add to DB
+    elif request.method == "POST":
+
+        # check if we need to generate a random listing:
+        if 'random' in request.POST:
+            form = NewListingForm(generateListing(1))
+        else:
+            # create form instance
+            form = NewListingForm(request.POST)
         
-        if request.method == 'GET':
-            return render(request, "auctions/index.html", {
-                'listings': active_listings,
-                'message': message,
-                'watchlist': watchlist,
-                'notifications': notifications
+        # validate form
+        if not form.is_valid():
+            # errors were found so return the form to the initial listing form page
+            return render(request, "auctions/createListing.html", {
+                'form': form
+            })       
+        else:
+            # create an instance of the object
+            instance = form.save(commit=False)
+            # attach user to the form instance
+            instance.owner = request.user
+            instance.current_bid = instance.starting_bid
+            # check to see if we need to preview or submit
+            if 'submit' in request.POST:
+                # add to DB
+                instance.save()
+                # include many-to-many relationships
+                form.save_m2m()
+                return HttpResponseRedirect(reverse('view_listing', args=[instance.id]))
+            else:
+                return render(request, 'auctions/previewListing.html', {
+                    'listing': instance,
+                    'form': form,
+                    'form_controls': False
+                })
+
+
+@login_required
+def delete_listing(request, listing_id):
+    listing_bundle = getListing(request, id=listing_id)
+    if request.user != listing_bundle["listing"].owner:
+        notification = generate_notification(
+            request.user, 
+            ALERT_DANGER, 
+            ICON_DANGER, 
+            MESSAGE_DELETE_PROHIBITED,
+            True)
+        return HttpResponseRedirect(reverse("index"))
+    else:
+        if request.method == "GET":
+            return render(request, 'auctions/deleteListing.html', {
+                'listing_bundle': listing_bundle
             })
         else:
-            if 'purge_notification' in request.POST:
-                not_id = request.POST['purge_notification']
-                purge_notification(not_id)
+            listing = Listing.objects.get(pk=listing_id)
+            listing.delete()
+            notification = generate_notification(
+                request.user,
+                ALERT_INFO,
+                ICON_GENERIC,
+                MESSAGE_LISTING_DELETED.format(listing.title),
+                True
+            )
+            return HttpResponseRedirect(reverse("index"))
 
-            return render(request, "auctions/index.html", {
-                'listings': active_listings,
-                'message': message,
-                'watchlist': watchlist,
-                'notifications': notifications
-            })
+
+@login_required
+def edit_listing(request, listing_id):
+    raw_listing = Listing.objects.get(id=listing_id)
+    listing_bundle = getListing(request, None, raw_listing)
+    if request.user != raw_listing.user:
+        message = MESSAGE_LISTING_EDIT_PROHIBITED.format(raw_listing.title)
+        notification = generate_notification(
+            request.user, 
+            ALERT_DANGER, 
+            ICON_DANGER, 
+            message, 
+            True)
+        return HttpResponseRedirect(reverse("index"))
     else:
+        # When first accessed, must check to make sure editing is allowed.
+        if request.method == "GET":
+            highest_bid = getHighestBid(raw_listing)
+            if (
+                (highest_bid and 
+                highest_bid.amount != raw_listing.starting_bid) or
+                (request.user != raw_listing.user)
+            ):
+                notification = generate_notification(
+                    request.user, 
+                    ALERT_DANGER, 
+                    ICON_DANGER, 
+                    MESSAGE_LISTING_EDIT_PROHIBITED.format(raw_listing.title),
+                    True,
+                    'listing_page')
+                return HttpResponseRedirect(
+                    reverse("listing_page", args=[listing_id])
+                    )
+            
+            else:
+                edit_form = NewListingForm(instance=raw_listing)
+                listing_bundle = getListing(request, None, raw_listing)
+                return render(request, 'auctions/editListing.html', {
+                    'listing_bundle': listing_bundle,
+                    'edit_listing_form': edit_form
+                })
+        
+        else:
+            edited_form = NewListingForm(request.POST, instance=raw_listing)
+            if not edited_form.is_valid():
+                return render(request, "auctions/editListing.html", {
+                    'listing_bundle': listing_bundle,
+                    'edit_listing_form': edited_form
+                })
+            
+            else:
+                edited_form.save()
+                generate_notification(
+                    request.user,
+                    ALERT_SUCCESS,
+                    ICON_SUCCESS,
+                    MESSAGE_EDIT_SUCCESSFUL,
+                    True,
+                    'listing_page')
+                return HttpResponseRedirect(
+                    reverse("view_listing", rgs=[raw_listing.id]))
+
+
+def index(request):
+    if not request.user.is_authenticated:
         return HttpResponseRedirect(reverse("login"))
+    else:
+        # purge listings that have expired
+        purge_listings(request)
+        notifications = get_notifications(request.user, 'index')
+        active_listings_raw = Listing.objects.filter(owner=request.user)
+        listing_page_tuple = get_page(request, active_listings_raw)
+        return render(request, "auctions/index.html", {
+            'listing_controls': listing_page_tuple[0],
+            'listing_bundles': listing_page_tuple[1],
+            'notifications': notifications
+        })
 
 
-def login_view(request):
+def listing_page(request, listing_id):
+    notifications = get_notifications(request.user, 'listing_page')
+    listing_bundle = getListing(request, listing_id)
+    comments = listing_bundle["listing"].listings_comments.all().order_by('-timestamp')
+    return render(request, "auctions/viewListing.html", {
+        'listing_bundle': listing_bundle,
+        'comments': comments,
+        'notifications': notifications
+    })
+
+
+@csrf_exempt
+def listings(request):
+    all_listings = Listing.objects.all()
+    page_tuple = get_page(request, all_listings)
+    return render(request, "auctions/listings.html", {
+        'controls_dict': page_tuple[0],
+        'listing_bundles': page_tuple[1]
+    })
+
+
+def login(request):
     if request.method == "POST":
-
         # Attempt to sign user in
         username = request.POST["username"]
         password = request.POST["password"]
@@ -106,11 +327,81 @@ def login_view(request):
         })
 
 
-def logout_view(request):
+def logout(request):
     logout(request)
     return render(request, "auctions/index.html", {
         "message": "You have been logged out."
     })
+
+
+@login_required
+def place_bid(request):
+    """Lot of repetition of generate_notification(); however, even though
+    that function does return the notification object, making changes to it
+    don't seem to properly save to the DB.
+    """
+    if request.method == "GET":
+        return HttpResponseRedirect(reverse("index"))
+    else:
+        listing_id = request.POST["listing-id"]
+        listing_bundle = getListing(request, listing_id)
+        if listing_bundle['expiration_bundle']['expired'] == True:
+            generate_notification(
+                    request.user,
+                    ALERT_WARNING,
+                    ICON_WARNING,
+                    MESSAGE_LISTING_EXPIRED,
+                    True,
+                    'listing_page'
+                )
+        else:
+            bid = request.POST["bid"]
+            if not bid.isdigit():
+                generate_notification(
+                    request.user,
+                    ALERT_WARNING,
+                    ICON_WARNING,
+                    MESSAGE_BID_FORMATTING,
+                    True,
+                    'listing_page'
+                )
+            elif int(bid) > 99999:
+                generate_notification(
+                    request.user,
+                    ALERT_WARNING,
+                    ICON_WARNING,
+                    MESSAGE_BID_TOO_HIGH,
+                    True,
+                    'listing_page'
+                )
+            elif int(bid) <= listing_bundle["listing"].current_bid:
+                generate_notification(
+                    request.user,
+                    ALERT_WARNING,
+                    ICON_WARNING,
+                    MESSAGE_BID_TOO_LOW,
+                    True,
+                    'listing_page'
+                )
+            else:
+                new_bid = Bid.objects.create(
+                    amount=decimal.Decimal(bid), 
+                    user=request.user, 
+                    listing=listing_bundle["listing"])
+                new_bid.save()
+                listing_bundle = getListing(request, listing_id)
+                generate_notification(
+                    request.user,
+                    ALERT_SUCCESS,
+                    ICON_SUCCESS,
+                    MESSAGE_BID_SUCCESSFUL,
+                    True,
+                    'listing_page'
+                )
+                
+
+        return HttpResponseRedirect(
+            reverse("view_listing", args=[listing_id]))
 
 
 def register(request):
@@ -140,200 +431,12 @@ def register(request):
         return render(request, "auctions/register.html")
 
 
+def search(request):
+    return render(request, "auctions/index.html")
+
+
 def shopping_cart(request):
     return HttpResponseRedirect(reverse('index'))
-
-
-@login_required
-def create_listing(request):
-    # if GET, display new listing form
-    if request.method == "GET":
-        new_listing_form = NewListingForm()
-        # categories = Category.objects.all()
-        return render(request, "auctions/createListing.html", {
-            # 'categories': categories
-            'new_listing_form': new_listing_form
-        })
-
-    # TODO: move this to the views.preview_listing() method     
-    # else if POST, preview listing for changes or add to DB
-    elif request.method == "POST":
-
-        # check if we need to generate a random listing:
-        if 'random' in request.POST:
-            form = NewListingForm(generateListing(1))
-        else:
-            # create form instance
-            form = NewListingForm(request.POST)
-        
-        # validate form
-        if not form.is_valid():
-            # errors were found so return the form to the initial listing form page
-            return render(request, "auctions/createListing.html", {
-                'form': form
-            })
-        
-        else:
-            # create a form instance with POST data
-            instance = form.save(commit=False)
-            # attach user to the form instance
-            instance.user = request.user
-            instance.current_bid = instance.starting_bid
-            # check to see if we need to preview or submit
-            if 'submit' in request.POST:
-                # add to DB
-                instance.save()
-                # include many-to-many relationships
-                form.save_m2m()
-                return HttpResponseRedirect(reverse('view_listing', args=[instance.id]))
-            else:
-                return render(request, 'auctions/previewListing.html', {
-                    'listing': instance,
-                    'form': form,
-                    'form_controls': False
-                })
-
-
-@login_required
-def edit_listing(request, listing_id):
-    raw_listing = Listing.objects.get(id=listing_id)
-    listing_bundle = getListing(request, None, raw_listing)
-
-    if request.method == "GET":
-        # check to make sure there aren't any bids on this listing to prevent bait-and-switch
-        highest_bid = getHighestBid(raw_listing)
-        if highest_bid and highest_bid.amount != raw_listing.starting_bid:
-            return HttpResponseRedirect(reverse("index_with_message", args=[MESSAGE_LISTING_EDIT_PROHIBITED, raw_listing.title]))
-        else:
-            edit_form = NewListingForm(instance=raw_listing)
-            listing_bundle = getListing(request, None, raw_listing)
-            return render(request, 'auctions/editListing.html', {
-                'listing_bundle': listing_bundle,
-                'edit_listing_form': edit_form
-            })
-    else:
-        edited_form = NewListingForm(request.POST, instance=raw_listing)
-        if not edited_form.is_valid():
-            return render(request, "auctions/editListing.html", {
-                'listing_bundle': listing_bundle,
-                'edit_listing_form': edited_form
-            })
-        else:
-            edited_form.save()
-            return HttpResponseRedirect(reverse("view_listing_with_message", args=[raw_listing.id, 0, raw_listing.title]))
-
-
-@login_required
-def place_bid(request):
-    if request.method == "GET":
-        return HttpResponseRedirect(reverse("index"))
-    else:
-        listing_id = request.POST["listing-id"]
-        listing_bundle = getListing(request, listing_id)
-
-        if listing_bundle['expiration_bundle']['expired'] == True:
-            return render(request, "auctions/viewListing.html", {
-                    'listing_bundle': listing_bundle,
-                    'alertExpired': 'This listing has expired.'
-                })
-        else:
-            bid = request.POST["bid"]
-            if not bid.isdigit():
-                return render(request, "auctions/viewListing.html", {
-                    'listing_bundle': listing_bundle,
-                    'bid_message': 'Bid must be whole numbers.'
-                })
-            else:
-                if int(bid) <= listing_bundle["listing"].current_bid:
-                    return render(request, "auctions/viewListing.html", {
-                        'listing_bundle': listing_bundle,
-                        'alertLowBid': "Your bid must be higher than the current bid."
-                    })
-                else:
-                    new_bid = Bid.objects.create(amount=int(bid), user=request.user, listing=listing_bundle["listing"])
-                    new_bid.save()
-                    listing_bundle["listing"].current_bid = bid
-                    listing_bundle["listing"].save()
-                    return render(request, "auctions/viewListing.html", {
-                        'listing_bundle': listing_bundle,
-                        'alertSuccess': 'Bid placed successfully!'
-                    })
-
-
-@login_required
-def delete_listing(request, listing_id):
-    listing_bundle = getListing(request, id=listing_id)
-    if request.method == "GET":
-        return render(request, 'auctions/deleteListing.html', {
-            'listing_bundle': listing_bundle
-        })
-    else:
-        listing = Listing.objects.get(pk=listing_id)
-        title = listing.title
-        listing.delete()
-        return HttpResponseRedirect(reverse("index_with_message", 
-            args=[MESSAGE_LISTING_DELETED, title]))
-
-
-@csrf_exempt
-def listings(request):
-    all_listings = Listing.objects.all()
-    page_tuple = get_page(request, all_listings)
-    return render(request, "auctions/listings.html", {
-        'controls_dict': page_tuple[0],
-        'listing_bundles': page_tuple[1]
-    })
-
-
-def listing_page(request, listing_id, message_code=None, id=None):
-    message = ''
-    if message_code == 0:
-        message = (MESSAGE_EDIT_SUCCESSFUL.format(id), 'success')
-
-    if request.method == "GET":
-        listing_bundle = getListing(request, listing_id)
-        return render(request, "auctions/viewListing.html", {
-            'listing_bundle': listing_bundle,
-            'message': message
-        })
-
-
-def categories(request):
-    return render(request, "auctions/categories.html", {
-        'categories': Category.objects.all()
-    })
-
-
-def category(request, category_id):
-    category_title = Category.objects.get(id=category_id)
-    category_listings_raw = Listing.objects.filter(category_id=category_id)
-    page_tuple = get_page(request, category_listings_raw)
-    return render(request, "auctions/category.html", {
-        'category_id': category_id,
-        'category_title': category_title,
-        'listing_bundles': page_tuple[1],
-        'controls_dict': page_tuple[0]
-    })
-
-
-@csrf_exempt
-def ajax(request, action, id):
-    if not request.user.is_authenticated:
-        response = dict(message="You must be logged in to do that.", button_text="Add to Watchlist", undo=True)
-    else:
-        if action == 'watch_listing':
-            listing = Listing.objects.get(id=id)
-            watched_item, created = Watchlist.objects.get_or_create(user=request.user, listing=listing)
-            if created:
-                response = dict(message='Added to watchlist.', button_text='Watching')
-            else:
-                watched_item.delete()
-                response = dict(message="Removed from watchlist.", button_text='Add to Watchlist')
-        elif action == 'dismiss':
-            notification = Notification.objects.get(id=id)
-            notification.delete()
-            response = dict(message=f"Dismiss notification: {notification.id}")
-    return JsonResponse(response)
 
 
 def view_all_users(request):
@@ -342,39 +445,53 @@ def view_all_users(request):
 
 def view_user(request, username):
     user = User.objects.get(username=username)
-    listings = Listing.objects.filter(user_id=user.id)
+    listings = Listing.objects.filter(owner_id=user.id)
     return render(request, "auctions/user.html", {
         "user": user,
         "listings": listings
     })
 
+def watchlist(request):
+    if not request.user.is_authenticated:
+        return HttpResponseRedirect(reverse("login"))
+    else:
+        # purge listings that have expired
+        purge_listings(request)
+        notifications = get_notifications(request.user, 'index')
+        active_listings_raw = request.user.watchlist.all()
+        listing_page_tuple = get_page(request, active_listings_raw)
+        return render(request, "auctions/watchlist.html", {
+            'listing_controls': listing_page_tuple[0],
+            'listing_bundles': listing_page_tuple[1],
+            'notifications': notifications
+        })
 
-def search(request):
-    return render(request, "auctions/index.html")
 
 # //////////////////////////////////////////////////////
 # UTILITY FUNCTIONS
 # //////////////////////////////////////////////////////
 
-def purgeListings(request):
+
+def purge_listings(request):
     """Since this isn't being run on a real server that can purge things in real time,
     instead, every time index.html is loaded, flag any listings that are no longer active.
     """
     all_listings = Listing.objects.all()
-    watchlist = getWatchlist(request)
+    watchlist = request.user.watchlist.all()
     for listing in all_listings:
-        expiration = checkExpiration(listing)
+        expiration = check_expiration(listing)
         if expiration["expired"]:
             listing.active = False
             highest_bid = getHighestBid(listing)
             if highest_bid:
                 listing.winning_bid = highest_bid.amount
                 listing.winner = highest_bid.user
-                listing.save()
                 notify_winner(highest_bid.user, listing)
             if listing in watchlist:
-                obj = Watchlist.objects.get(listing=listing, user=request.user)
+                obj = request.user.watchlist.get(listing=listing)
                 obj.delete()
+            listing.save()
+
 
 def getHighestBid(listing) -> Bid:
     bids = Bid.objects.filter(listing=listing).order_by('-amount')
@@ -387,11 +504,11 @@ def getListing(request, id=None, listing=None) -> dict:
 
     highest_bid = getHighestBid(listing)
     listing.current_bid = highest_bid.amount if highest_bid else listing.starting_bid
-    owner_controls = True if listing.user == request.user else False
+    owner_controls = True if listing.owner == request.user else False
     watch_options = True if owner_controls == False else True
-    watchlist = getWatchlist(request)
+    watchlist = request.user.watchlist.all()
     watching_currently = True if listing in watchlist else False
-    expiration_bundle = checkExpiration(listing)
+    expiration_bundle = check_expiration(listing)
     return {
         'listing': listing,
         'owner_controls': owner_controls,
@@ -401,14 +518,14 @@ def getListing(request, id=None, listing=None) -> dict:
     }
 
 
-def checkExpiration(listing) -> dict:
+def check_expiration(listing) -> dict:
     """Make sure the listing is still active according to its creation timestamp.
     Irrelevant, but for my own notes:
     Due to the db being sqlite, the timestamp is a naive date; i.e. it does not carry with it any timezone information.
     By default Django creates objects using UTC time format.
     LOCAL_TIMEZONE stores the timezone as a string in ISO format, to be used for converting UTC timestamps to local user timezones.
     """
-    expiration_date = listing.timestamp + timedelta(days=LISTING_EXPIRATION_DAYS)
+    expiration_date = listing.timestamp + timedelta(days=listing.lifespan)
     today = timezone.now()
     difference = (expiration_date - today)      # e.g. 13 days, 22:18:29.642879.
     s = difference.seconds
@@ -423,23 +540,7 @@ def checkExpiration(listing) -> dict:
     }
     
 
-def getWatchlist(request):
-    """Gets a user's watchlist based on their ID.
-    For a plain descriptive string of the listing being watched, one could simply
-    get a queryset from the join table itself, which Django nicely cross-references
-    to fill in the details. But this doesn't return an object with accessible
-    properties like listing.title, or listing.description; hence, separate DB queries.
-    """
-    if request.user.is_authenticated:
-        watch_joinset = Watchlist.objects.filter(user_id=request.user)
-        watchlist = []
-        for watch_item in watch_joinset:
-            watchlist.append(Listing.objects.get(pk=watch_item.listing_id))
-        return watchlist
-    else:
-        return []
-
-def get_page(request, all_listings) -> tuple:
+def get_page(request, raw_listings) -> tuple:
     """Generate a dict containing all the information needed for the template
     to properly paginate the listings.
     """
@@ -452,10 +553,16 @@ def get_page(request, all_listings) -> tuple:
         'last_page': 0,
         'order_by': request.GET.get('orderBy', 'newest'),
         'show_expired': request.GET.get('showExpired', False) == "True",
-        'categories': [category for category in Category.objects.all()]
+        'categories': [category for category in Category.objects.all()],
+        'selected_category': int(request.GET.get('selected_category', 0))
     }
 
-    ordered_listings = order_listings(all_listings, controls_dict['order_by'])
+    if controls_dict['selected_category'] != 0:
+        categorized_listings = raw_listings.filter(category_id=controls_dict['selected_category'])
+    else:
+        categorized_listings = raw_listings
+
+    ordered_listings = order_listings(categorized_listings, controls_dict['order_by'])
 
     if not controls_dict['show_expired']:
         ordered_listings = ordered_listings.filter(active=True)
@@ -483,7 +590,7 @@ def get_page(request, all_listings) -> tuple:
     return (controls_dict, formatted_listings)
 
 
-def order_listings(listings, spec):
+def order_listings(listings, spec) -> QuerySet:
     order = ''
 
     if spec == 'newest':
@@ -502,28 +609,9 @@ def order_listings(listings, spec):
     return listings.order_by(order)
 
 
-
 # //////////////////////////////////////////////////////
-# TESTING FUNCTIONS
+# RANDOM OBJECT GENERATION
 # //////////////////////////////////////////////////////
-
-def test_bidding(request):
-    listing_id = 32     # arbitrary active listing
-    listing_bundle = getListing(request, listing_id)
-    bids = Bid.objects.filter(listing=listing_bundle['listing']).order_by('-amount')
-    highest_bid = bids.first()  # returns None if no bids are found
-    return render(request, "auctions/tests/testBidding.html", {
-        'listing-bundle': listing_bundle,
-        'bids': bids,
-        'highest_bid': highest_bid
-    })
-
-
-def viewMockup(request):
-    titles = generateListing(10)
-    return render(request, "auctions/mockup.html", {
-        "titles": titles
-    })
 
 
 def generateListing(amount):
@@ -535,18 +623,19 @@ def generateListing(amount):
             'description': generateDescription()[0:500],
             'starting_bid': random.randint(1,9999),
             'shipping': random.randint(5, 50),
-            'category': random.randint(1, 8)
+            'category': random.randint(1, 8),
+            'lifespan': random.randint(1, 5)
         }
         listings.append(listing)
     
     return listings if (amount>1) else listings[0]
 
 
-    
 def generateTitle():
     adj = random.choice(wordlist.adjectives)
     noun = random.choice(wordlist.nouns)
     return f"{adj.capitalize()} {noun}"
+
 
 def generateImage():
     # sorta inefficient because the api loads a random image but only looks at the response headers for the id to generate a static URL,
@@ -555,9 +644,11 @@ def generateImage():
     image_api = requests.get('https://picsum.photos/200')
     image_id = image_api.headers['picsum-id']
     return f'https://picsum.photos/id/{image_id}/200'
-    
+
+
 def generateDescription():
-    return gen.paragraph()
+    return GEN.paragraph()
+
 
 def picsum(request):
     image_api = requests.get('https://picsum.photos/200')
@@ -565,56 +656,4 @@ def picsum(request):
     image_url = f'https://picsum.photos/id/{image_id}/200'
     return render(request, 'auctions/tests/picsum.html', {
         'url': image_url
-    })
-
-def ajax_test(request):
-    return render(request, "auctions/tests/ajax.html")
-
-def ajax_return(request):
-    return HttpResponse("Here's a message")
-
-    
-def datetime(request):
-    if request.user.is_superuser:    
-        # arbitrary listing
-        listing = Listing.objects.get(pk=48)
-        timezone.activate(LOCAL_TIMEZONE)
-        creation_date = listing.timestamp # format: 2021-12-03 19:28:45.637086
-        expiration_date = listing.timestamp + timedelta(days=LISTING_EXPIRATION_DAYS)
-        date_difference = (expiration_date - creation_date).days
-        today = timezone.now()
-        until_expiration = (expiration_date - today).days
-        tz = timezone.get_current_timezone()
-        tz_info = timezone.now().astimezone().tzinfo
-        lt = timezone.localtime()
-        tz_now = timezone.now()
-        expiredCheck = checkExpiration(listing)
-        return render(request, "auctions/datetime.html", {
-            'creation_date': creation_date,
-            'creation_tz': creation_date.astimezone().tzinfo,
-            'today_tz': today.astimezone().tzinfo,
-            'expiration_date': expiration_date,
-            'expiration_tz': expiration_date.astimezone().tzinfo,
-            'date_difference': date_difference,
-            'now': today,
-            'until_expiration': until_expiration,
-            'tz': tz,
-            'tz_info': tz_info,
-            'lt': lt,
-            'lt_tz': lt.tzinfo,
-            'tz_now': tz_now,
-            'tz_now_tzinfo': tz_now.tzinfo,
-            'expired': expiredCheck['expired'],
-            'remaining': expiredCheck['remaining'],
-            'days_remaining': expiredCheck['remaining'].days,
-            'hours_remaining': expiredCheck['hours'],
-            'minutes_remaining': expiredCheck['minutes'],
-            'seconds_remaining': expiredCheck['seconds']
-        })
-    else:
-        return HttpResponseRedirect(reverse("index"))
-
-def test_listing(request):
-    return render(request, "auctions/tests/extendedListing.html", {
-        'watchedBy': None
     })

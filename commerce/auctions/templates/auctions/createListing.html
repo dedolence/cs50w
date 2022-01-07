@@ -11,7 +11,7 @@
         <p class="mb-5">Please fill out all fields.</p>
 
         {# TODO: REFACTOR TO USE AN INCLUDE #}
-        {% include 'auctions/includes/listingForm.html' with listing_form=new_listing_form new_listing=True %}
+        {% include 'auctions/includes/listingForm.html' with listing_form=form new_listing=True %}
 
     {% else %}
 

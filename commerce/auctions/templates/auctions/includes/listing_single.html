@@ -67,7 +67,7 @@
                                                 Added to watchlist!
                                             </div>
                                         </div>
-                                        <small>Posted by <a href="{% url 'view_user' listing.user %}">{{ listing.user }}</a> at {{ listing.timestamp }}.</small>
+                                        <small>Posted by <a href="{% url 'view_user' listing.owner %}">{{ listing.owner }}</a> at {{ listing.timestamp }}.</small>
                                     {% else %}
                                         <small>This listing has expired.</small>
                                     {% endif %}

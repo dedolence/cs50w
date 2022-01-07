@@ -96,3 +96,33 @@ So once again:
             create_listing:
                 if GET: display form for new listing
                 if POST: validate form, render form for preview, POST either back to create_listing or to submit_listing
+
+    1/5
+        A lot has happened, trying to document more in Trello than here. But now it's clear I need to refactor the models somewhat, to take advantage of Django's builtin
+        through table functions via ManyToMany fields. For some reason I am finding this conceptually very difficult to grasp. I understand this:
+            User and Listing relate in two ways.
+            1) A Listing has a Single owner. One User has many Listings. One-to-Many.
+            2) A Listing may have several Watchers. One Watcher may be watching several Listings. Many-to-Many.
+        The Listing-to-Owner relationship seems straightforward, a ForeignKey field.
+        Parsing the M2M field seems more difficult. I think part of the problem is understanding whether what I want is possible, nevermind implementing it.
+        What I want:
+            user = Users.objects.get(id=X)
+            users_watchlist = user.watchlist.all() -> QuerySet of all the Listings that the user is watching.
+            users_listings = user.listings.all() -> QuerySet of all the listings that the user owns.
+        and/or:
+            listing = Listings.objects.get(id=X)
+            listings_watchers = listing.watchers.all() -> QuerySet of all the Users that are watching this listing.
+            listings_owner = listing.owner.get() -> A single instance of a User who owns this listing.
+        
+        I *have* accomplished the latter, I think, by adding a M2M field to the Listing model. I was able to add a user to a listing's watchers field
+        by calling:
+            listing.watchers.add(user)
+        Then if I call:
+            listings.watchers.all()
+        It produces a QuerySet that includes the user. Ultimately though I think the reverse will be more useful since everything sort of revolves around
+        the request.user object. Therefore being able to call user.watchlist.all() and user.listings.all() will be very convenient.
+
+        I don't know why this was so hard. Leave any sort of "watching" field off of Listing; just keep the ForeignKey field "owner".
+        Simply have a M2M field called "watchlist" on User. No related_names seem to even be necessary here.
+        Just do: user.watchlist.add(listing), or user.watchlist.all(). Why was this so difficult?
+        

@@ -9,9 +9,8 @@
     {% if user.is_authenticated %}
         <div class="container w-75 ml-0 p-0">
         
-        {% include 'auctions/includes/listing_single.html' with listing=listing_bundle.listing expiration=listing_bundle.expiration_bundle watch_options=False owner_controls=False watching_currently=False disappear=False %}
+        {% include 'auctions/includes/listing_single.html' with listing=listing_bundle.listing expiration=listing_bundle.expiration_bundle watch_options=False owner_controls=True watching_currently=False disappear=False %}
 
-        {# TODO: REFACTOR TO USE AN INCLUDE #}
         {% include 'auctions/includes/listingForm.html' with listing_form=edit_listing_form new_listing=False %}
 
     {% else %}

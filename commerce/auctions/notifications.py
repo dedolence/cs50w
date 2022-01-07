@@ -1,29 +1,39 @@
+from django.db.models.query import QuerySet
 from . import strings
 from .models import Notification
 from django.urls import reverse
 
 
-def generate_notification(user, type, icon, message):
-    """Generate and return an alert box. The color (and therefore priority) is
-    set by 'type' to correspond to Bootrstrap 5.0 'alert alert-{type}' class.
-    'Icon' refers to the Bootrstrap icon library.
+def generate_notification(user, type, icon, message, autodelete=False, page="index") -> Notification:
+    """Generate and return an alert box. 'Type' and 'icon' are string values
+    corresponding to the Bootstrap 5.0 'alert-' and 'bi-' classes. 'Page'
+    is the view on which the notification should appear, defaults to index.
     """
-    content = (strings.MESSAGE_INFORMATION).format(icon=icon, message=message)
-    notification = Notification.objects.create(user=user, content=content, type=type)
+    content = (strings.MESSAGE_GENERIC).format(icon=icon, message=message)
+    notification = Notification.objects.create(
+        user=user, 
+        content=content, 
+        type=type, 
+        autodelete=autodelete,
+        page=page)
     notification.save()
     return notification
 
 
-def get_notifications(user):
-    return Notification.objects.filter(user=user)
+def get_notifications(user, page) -> list:
+    # if these aren't added to a list, they will be deleted after
+    notifications_all = [i for i in Notification.objects.filter(user=user, page=page)]
+    # purge auto-delete notifications
+    Notification.objects.filter(autodelete=True).delete()
+    return notifications_all
 
 
-def purge_notification(notification_id):
+def purge_notification(notification_id) -> None:
     notification = Notification.objects.get(pk=notification_id)
     notification.delete()
 
 
-def notify_winner(user, listing):
+def notify_winner(user, listing) -> None:
     listing_title = listing.title
     listing_url = reverse('view_listing', args=[listing.id])
     shopping_cart_url = reverse('shopping_cart')
