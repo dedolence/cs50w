@@ -1,16 +1,17 @@
 {% load static %}
 
-<section class="row mt-4">
+<section class="row mt-4" id="commentBlock">
     <div class="col-lg-9">
-        <h5 class="my-4">Comments</h5>
+        <a name="commentInput" id="commentInputAnchor"><h5 class="my-4">Comments</h5></a>
         <form id="newCommentForm" action="{% url 'comment' %}" method="POST">
             {% csrf_token %}
+            <input id="commentId" type="hidden" name="comment-id">
             <input type="hidden" name="listing_id" value="{{ listing_id }}">
             <div class="form-floating">
                 <textarea id="commentInput" name="content" class="form-control" placeholder="Leave a comment here"></textarea>
                 <label for="commentInput">Add a comment</label>
             </div>
-            <div class="d-flex justify-content-between mt-2 mb-4">
+            <div class="d-flex flex-row justify-content-between mt-2 mb-4">
                 <span>
                     {% url 'ajax' 'generate_comment' 0 as ajax_url %}
                     <input id="randomCommentButton" type="button" value="Generate a random comment" class="btn btn-outline-primary" onclick="ajax('{{ajax_url}}')">

@@ -10,54 +10,80 @@ function ajax(full_url, disappear = false) {
         })
         .then(res => res.json())
         .then(r => {
-            // set the toast message, if any
-            if (action == 'watch_listing') {
-                let toastElement = document.getElementById("toast-" + id);
-                let toastBody = document.getElementById("toast-body-" + id);
-                let buttonText = document.getElementById("toast-button-text-" + id);
-                let toastIcon = document.getElementById("toast-icon-" + id);
-                
-                toastBody.innerHTML = r.message;
-                // toggle icon and text
-                if (!r.undo) {
-                    toastIcon.classList.toggle("bi-heart");
-                    toastIcon.classList.toggle("bi-heart-fill");
-                    buttonText.innerHTML = r.button_text;
-                }
-                // create Toast instance
-                let toast = new bootstrap.Toast(toastElement);
-                // display Toast
-                toast.show();
+            let comment_input = document.getElementById("commentInput");
+            switch (action) {
+                case 'dismiss':
+                    let el = document.getElementById("notification-" + id);
+                    $(el).fadeOut();
+                    break;
+                case 'watch_listing':
+                    watchListing(id, disappear);
+                    break;
+                case 'generate_comment':
+                    comment_input.innerHTML = r.message;
+                    comment_input.style.height = 'auto';
+                    comment_input.style.height = comment_input.scrollHeight + 10 + "px";
+                    break;
+                case 'reply_comment':
+                    let comment = document.getElementById("comment-" + id);
+                    
+                    break;
+                case 'edit_comment':
+                    editComment(id);
+                case 'delete_comment':
+                    let card = document.getElementById("comment-" + id);
+                    let alert = document.createElement("div");
+                        alert.classList.add("alert");
+                        alert.classList.add("alert-warning");
+                        alert.ariaRoleDescription = "alert";
+                        alert.innerHTML = r.message;
+                    let parent = card.parentElement;
+                    parent.replaceChild(alert, card);
+                    setTimeout(function() {
+                        $(alert).fadeOut();
+                    }, 1000);
+                    break;
+                default:
+                    break;
             }
-            else if (action == 'generate_comment') {
-                let comment_box = document.getElementById("commentInput");
-                comment_box.innerHTML = r.message;
-            }
-            else if (action == 'reply_comment') {}
-            else if (action == 'edit_comment') {
-                let comment_card = document.getElementById("comment-" + id);
-                let comment_text = document.getElementById("commentText-" + id);
-                let comment_box = document.getElementById("commentInput");
-                let submit_button = document.getElementById("commentSubmitButton");
-                
-            }
-            else if (action == 'delete_comment') {}
-
-            // hide the notification
-            if (disappear) {
-                switch (action) {
-                    case "dismiss":
-                        identifier = 'notification-';
-                        break;
-                    case "watch_listing":
-                        identifier = 'listing-';
-                        break;
-                    default:
-                        break;
-                }
-                let element = document.getElementById(identifier + id);
-                $(element).fadeOut()
-                return;
-            }
+            return;
         });
+}
+
+function editComment(id) {
+    let anchor = document.getElementById("commentInputAnchor");
+    let comment_text = document.getElementById("commentText-" + id);
+    let comment_box = document.getElementById("commentInput");
+    let submit_button = document.getElementById("commentSubmitButton");
+    let hidden_id = document.getElementById("commentId");
+    comment_box.innerHTML = comment_text.innerText;
+    submit_button.value = "Save Changes";
+    hidden_id.value = id;
+    // set height to show entire comment
+    comment_box.style.height = 'auto';
+    comment_box.style.height = comment_box.scrollHeight + 10 + "px";
+    anchor.scrollIntoView();
+}
+
+function watchListing(id, disappear) { 
+    let listing = document.getElementById("listing-" + id);
+    let toastElement = document.getElementById("toast-" + id);
+    let toastBody = document.getElementById("toast-body-" + id);
+    let buttonText = document.getElementById("toast-button-text-" + id);
+    let toastIcon = document.getElementById("toast-icon-" + id);
+
+    toastBody.innerHTML = r.message;
+    // toggle icon and text
+    if (!r.undo) {
+        toastIcon.classList.toggle("bi-heart");
+        toastIcon.classList.toggle("bi-heart-fill");
+        buttonText.innerHTML = r.button_text;
+    }
+    // create Toast instance
+    let toast = new bootstrap.Toast(toastElement);
+    // display Toast
+    toast.show();
+    if (disappear) {
+        disappear(listing);
+    }
 }

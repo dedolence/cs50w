@@ -73,17 +73,25 @@ def ajax(request, action, id=None):
                     watchlist.add(listing)
                     response["message"] = "Added to watchlist."
                     response["button_text"] = "Watching"
+            
             elif action == 'dismiss':
                 try:
                     notification = Notification.objects.get(pk=id)
                     notification.delete()
                 except ObjectDoesNotExist:
                     pass
+            
             elif action == 'generate_comment':
                 message = ''
                 for i in range(0, random.randint(1,5)):
                     message += GEN.sentence()
                 response["message"] = message
+
+            elif action == 'delete_comment':
+                comment = Comment.objects.get(pk=id)
+                comment.delete()
+                response["message"] = "Comment deleted."
+        
         return JsonResponse(response)
 
 
@@ -114,8 +122,21 @@ def comment(request):
         listing = Listing.objects.get(pk=request.POST["listing_id"])
         user = request.user
         replyTo = request.POST["replyTo"] if 'replyTo' in request.POST else None
-        comment = Comment.objects.create(content=content, listing=listing, user=user, replyTo=replyTo)
-        return HttpResponseRedirect(reverse("view_listing", args=[request.POST["listing_id"]]))
+        comment_id = request.POST["comment-id"]
+        if comment_id:
+            comment = Comment.objects.get(pk=comment_id)
+            comment.content = content
+            comment.save()
+        else:
+            Comment.objects.create(
+                content=content,
+                listing=listing,
+                user=user,
+                replyTo=replyTo
+            )
+        return HttpResponseRedirect(
+            reverse("view_listing", args=[request.POST["listing_id"]])
+            )
 
 
 @login_required
@@ -295,7 +316,7 @@ def listings(request):
     })
 
 
-def login(request):
+def login_view(request):
     if request.method == "POST":
         # Attempt to sign user in
         username = request.POST["username"]
@@ -327,7 +348,7 @@ def login(request):
         })
 
 
-def logout(request):
+def logout_view(request):
     logout(request)
     return render(request, "auctions/index.html", {
         "message": "You have been logged out."
@@ -478,9 +499,10 @@ def purge_listings(request):
     """
     all_listings = Listing.objects.all()
     watchlist = request.user.watchlist.all()
+
     for listing in all_listings:
         expiration = check_expiration(listing)
-        if expiration["expired"]:
+        if expiration["expired"] and listing.active:
             listing.active = False
             highest_bid = getHighestBid(listing)
             if highest_bid:
@@ -488,7 +510,7 @@ def purge_listings(request):
                 listing.winner = highest_bid.user
                 notify_winner(highest_bid.user, listing)
             if listing in watchlist:
-                obj = request.user.watchlist.get(listing=listing)
+                obj = request.user.watchlist.get(id=listing.id)
                 obj.delete()
             listing.save()
 
