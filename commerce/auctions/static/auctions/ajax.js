@@ -25,11 +25,17 @@ function ajax(full_url, disappear = false) {
                     comment_input.style.height = comment_input.scrollHeight + 10 + "px";
                     break;
                 case 'reply_comment':
-                    let comment = document.getElementById("comment-" + id);
-                    
+                    let comment = document.getElementById("commentText-" + id);
+                    let o_c_t = comment.innerText;
+                    let r_b = document.getElementById("reply_block");
+                    let r_a_l = document.getElementById("reply_author_link");
+                    let r_o_c = document.getElementById("reply_original_comment");
+                    r_b.classList.remove("d-none");
+                    r_o_c.innerText = o_c_t;
                     break;
                 case 'edit_comment':
                     editComment(id);
+                    break;
                 case 'delete_comment':
                     let card = document.getElementById("comment-" + id);
                     let alert = document.createElement("div");

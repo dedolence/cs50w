@@ -2,7 +2,13 @@
 
 <section class="row mt-4" id="commentBlock">
     <div class="col-lg-9">
-        <a name="commentInput" id="commentInputAnchor"><h5 class="my-4">Comments</h5></a>
+        <a name="commentInput" id="commentInputAnchor">
+            <h5 class="my-4">Comments</h5>
+        </a>
+        <div id="reply_block" class="d-none mx-5 my-3 px-3 py-2 bg-light border-start border-end">
+            <p class="small"><a href="" class="link-dark" id="reply_author_link"></a> posted:</p>
+            <p class="my-2 fst-italic" id="reply_original_comment"></p>
+        </div>
         <form id="newCommentForm" action="{% url 'comment' %}" method="POST">
             {% csrf_token %}
             <input id="commentId" type="hidden" name="comment-id">
